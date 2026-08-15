@@ -118,8 +118,10 @@ source diversity as a standard Data Feed.
 Chainlink's [24/5 US equities guide](https://docs.chain.link/data-streams/rwa-streams/24-5-us-equities-user-guide)
 describes separate regular, extended and overnight streams, with market-status, mid, bid, ask,
 last-trade and staleness fields. It names TSLA as an example and says all three streams must be
-handled to construct a continuous 24/5 view. The public catalogue also showed SPY, QQQ and many
-single-name streams on 16 August 2026. Those are **catalogue candidates**, not supported sources.
+handled to construct a continuous 24/5 view. Chainlink's [release notes](https://docs.chain.link/data-streams/release-notes)
+also named QQQ/USDT and SPY/USDT streams when checked on 16 August 2026. Those are **catalogue
+candidates**, not supported sources; the identifier, quote asset, network and current status need
+checking again for a real series.
 
 For a European barrier note, “price at maturity” should normally become one of these explicit
 rules:
@@ -234,7 +236,7 @@ design review.
 | Liquid crypto | USD reference price, stablecoin pair, exchange close, basket, ratio, realised volatility | Chainlink Data Feeds/Streams, Pyth, RedStone, Chronicle, API3 | BTC/USD Data Feed **implemented**; others candidate only | Venue set, stablecoin basis, forks, 24/7 observation, manipulation and outage rule |
 | FX | Spot pair, WM-style fixing, central-bank rate, stablecoin proxy | Chainlink, Pyth, RedStone, DataLink | **Catalogue candidate** or **inquiry only** | Base/quote, fixing time, weekday/holiday calendar, stale weekend value, benchmark rights |
 | Precious metals | Spot composite, token price, futures contract, rolling index | Chainlink, Pyth, RedStone, DataLink | **Catalogue candidate** | Spot versus future, maintenance window, venue/location, roll rule and rights |
-| Energy and agriculture | Named future, front contract or governed rolling index | Data Streams, Pyth, RedStone Live/DataLink | **Catalogue candidate** or **inquiry only** | Contract month, expiry, roll, negative price, delivery geography and thin liquidity |
+| Energy and agriculture | Named future, front contract or governed rolling index | Data Streams, Pyth, [RedStone Live](https://docs.redstone.finance/docs/dapps/redstone-live-feeds/) or DataLink | **Catalogue candidate** or **inquiry only** | Contract month, expiry, roll, negative price, delivery geography and thin liquidity |
 | US equity | Official close, regular-session price, extended/overnight value, tokenised share | Chainlink Data Streams, Pyth Pro, DataLink | **Catalogue candidate** | Session, holiday, halt, split, dividend, merger, delisting and venue rights |
 | ETF | Exchange share price, NAV or intraday indicative value | Chainlink Data Streams, Pyth Pro, DataLink | **Catalogue candidate** | Share price versus NAV, distribution adjustment, tracking error, session and licence |
 | Equity index | Official index level, total-return index, future, ETF proxy | DataLink or direct licensed publisher; related exchange products | **Inquiry only** for S&P 500 | Price/total return, calculation agent, close, corrections, cessation and product licence |

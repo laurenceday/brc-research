@@ -38,7 +38,7 @@ Choose the route that matches the job:
 
 | Reader | Start here | Then read |
 | --- | --- | --- |
-| Product or BD | [Product terms](docs/product-terms.md) | The primer, instrument history and BD briefs added by the current delivery plan |
+| Product or BD | [Primer](docs/primer.md) | [Instrument history](docs/research/instrument-history.md) and [product terms](docs/product-terms.md) |
 | Engineer or reviewer | [Architecture](docs/architecture.md) | [Threat model](docs/threat-model.md), [review packet](docs/review-packet.md) and [validation evidence](docs/validation-evidence.md) |
 | Deployment or operations | [Deployment tooling](docs/deployment-tooling.md) | [Runbook](docs/runbook.md) and [operator checklists](docs/operations-checklists.md) |
 | Contributor | [Project study](docs/research/project-study.md) | [Delivery plan](docs/research/delivery-plan.md) and the [merged implementation records](tasks/01-product-spec.md) |
@@ -96,8 +96,9 @@ the supplied values; the example file is deliberately incomplete.
 - `script/` contains the manifest parser, deployer, verifier and release checks.
 - `config/series.example.json` is an incomplete example, not a deployable series.
 - `docs/` contains current terms, architecture, operating controls and review evidence.
-- `docs/research/` contains the source study and delivery plan for the present documentation and BD
-  work.
+- `docs/primer.md` explains the trade and its worked lender and borrower outcomes.
+- `docs/research/` contains the sourced instrument history, source index, project study and delivery
+  plan.
 - `tasks/` records what each of the eleven merged implementation PRs delivered.
 
 The original eleven-PR stack is merged. The task pages remain as the build record; they are no

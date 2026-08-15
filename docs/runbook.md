@@ -6,8 +6,9 @@
 2. Check the approved hooks template, hooks factory and singleton role-provider factory addresses. Record the Wildcat ArchController owner, SphereX admin, operator and current engine; these are trust inputs, and the engine can change later. Record the template's fee recipient and protocol fee as well.
 3. Check that Wildcat accepts the settlement asset, then record its address and decimals.
 4. Check the standard Ethereum mainnet Chainlink BTC/USD proxy, `description()` and `decimals()` against Chainlink's current directory.
-5. Freeze the series manifest, legal terms, note transfer policy, maturity, oracle delay and fallback procedure. Check that the maturity, maximum observation delay, withdrawal duration and the extra second Wildcat may need when closing a batch all fit below its 32-bit timestamp limit.
-6. Run unit, fuzz, stateful accounting-property and mainnet-fork tests against the pinned commits.
+5. Freeze the series manifest, legal terms, note transfer policy, maturity, oracle delay, recovery grace period and write-off time. Check that the recovery start, withdrawal duration and the extra second Wildcat may need when closing a batch all fit below its 32-bit timestamp limit.
+6. Record the fallback source identifier, waiting and challenge periods, ratifier addresses and threshold. Ratifiers must be distinct ECDSA EOAs; Safe and other contract-wallet signers are not supported by this prototype. The signing procedure must bind the chain, oracle, series, proposal, price, observation time, evidence hash and source.
+7. Run unit, fuzz, stateful accounting-property and mainnet-fork tests against the pinned commits.
 
 ## Deploy the series
 
@@ -37,7 +38,7 @@ Check the market address, asset, operational borrower, registered borrower princ
 
 Read `getHookedMarket` and check deposit access, transfer access, disabled market-token transfers, disabled early closure and disabled term reduction. Try an unrelated deposit, market-token transfer, pre-maturity close, repricing, term reduction and provider mutation. Every call should revert.
 
-Check the vault bytecode, series manifest hash, stored `S0`, feed metadata and expected market address. Re-read the ArchController's SphereX admin, operator and engine, and check that the market reports that engine. Wildcat permits borrower succession and SphereX engine changes after activation. Write both down as live legal, credit and governance assumptions; they are not frozen onchain terms.
+Check the vault bytecode, series manifest hash, stored `S0`, feed metadata and expected market address. Read back the recovery dates and every fallback ratifier, then match the threshold, source and delays to the manifest. Confirm each ratifier has no deployed code and verify one series-domain rehearsal signature from every address. Re-read the ArchController's SphereX admin, operator and engine, and check that the market reports that engine. Wildcat permits borrower succession and SphereX engine changes after activation. Write both down as live legal, credit and governance assumptions; they are not frozen onchain terms.
 
 ## Fund the series
 
@@ -62,13 +63,31 @@ Keep an eye on the Chainlink feed, proxy phase, deprecation notices, market liqu
 
 ## At maturity
 
-1. Submit the first valid BTC/USD round at or after maturity together with the evidence required to prove its position in the proxy history.
-2. Store `ST` once.
-3. Queue the vault's complete market balance before the safe queue deadline. If `nukeFromOrbit` got there first and queued the sanctioned vault, supply that authenticated batch expiry and adopt it.
-4. Have the borrower fund and close the Wildcat market.
+1. Queue the vault's complete market balance immediately, before the safe queue deadline and without waiting for `ST`. If `nukeFromOrbit` got there first and queued the sanctioned vault, supply that authenticated batch expiry and adopt it.
+2. In parallel, submit the first valid BTC/USD round at or after maturity together with the evidence required to prove its position in the proxy history.
+3. Store `ST` once, using the primary route or the delayed fallback procedure below.
+4. Have the borrower fund the Wildcat claim and close the market where practical.
 5. Execute the withdrawal after its batch expires.
-6. Confirm that the market is closed and that the vault collected its complete claim.
+6. Confirm that the vault collected its complete claim. Formal closure of the empty market is not required for settlement.
 7. Calculate the slash and transfer the borrower rebate.
 8. Open pro-rata note redemption against the remaining USDC.
 
-If the market does not perform in full, or the safe queue deadline has passed, enter recovery. Do not pay the borrower rebate.
+If the queued claim remains partly unpaid after the recovery grace period, enter recovery. Do not pay the borrower rebate. Missing the safe queue deadline leaves the vault unable to reach `Withdrawing` or `Recovery`; escalate that operational failure under the transaction and legal fallback plan rather than pretending the onchain recovery path remains available.
+
+## If the primary fixing is unavailable
+
+1. Wait until the maximum Chainlink observation delay and the additional fallback waiting period have both ended.
+2. Check once more whether the primary proof can be supplied. The contract cannot prove that a valid but unsubmitted Chainlink round does not exist.
+3. Have one immutable ratifier propose the fallback price, observation time, fixed source identifier and evidence hash.
+4. Publish the underlying evidence somewhere the signatures and hash can be checked later.
+5. Collect signatures from the immutable ratifier set. Any ratifier may veto the proposal during or after the challenge period, up to finalisation.
+6. If a valid primary proof appears before finalisation, submit it; it cancels the pending fallback.
+7. Once the challenge period has ended and the threshold has signed, finalise the fallback once.
+
+## If the market defaults
+
+1. Queue the complete position at or after maturity; this does not require the BTC fixing. Include any authenticated pre-existing batch expiries.
+2. Wait for the recovery grace period. If the queued claim remains partly unpaid, call `enterRecovery()`. A fully paid claim cannot enter recovery. A valid BTC fixing does not change the default path and no borrower rebate is available there.
+3. As Wildcat pays a batch, execute the available withdrawal into the vault. Redemptions stay closed while recoveries are still coming in.
+4. At or after the fixed write-off eligibility time, check that every recorded batch has expired, then call `finalizeRecovery()`. It executes any amount Wildcat has made withdrawable before taking the snapshot.
+5. Open note redemption against the recovered pool. The call is permissionless; later Wildcat payments and unsolicited transfers do not enlarge the pool.

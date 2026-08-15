@@ -3,6 +3,7 @@ pragma solidity ^0.8.28;
 
 import { Test } from "forge-std/Test.sol";
 import { ActivationTerms, BRCNoteVault } from "../src/BRCNoteVault.sol";
+import { BRCFallbackConfig } from "../src/BRCFallback.sol";
 import { BRCState } from "../src/BRCSeries.sol";
 import { IERC20Metadata } from "../src/interfaces/IERC20.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
@@ -296,7 +297,16 @@ contract BRCNoteVaultTest is Test {
         maxInitialAge: 0,
         maxFutureSkew: 0,
         barrierBips: 0,
-        maxObservationDelay: 0
+        maxObservationDelay: 0,
+        recoveryDelay: 0,
+        writeOffDelay: 0,
+        fallbackConfig: BRCFallbackConfig({
+          ratifiers: new address[](0),
+          threshold: 0,
+          waitingPeriod: 0,
+          challengePeriod: 0,
+          sourceId: bytes32(0)
+        })
       })
     );
   }

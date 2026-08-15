@@ -61,8 +61,8 @@ Say `K` is 100,000, `B` is 60,000 and `ST` is 55,000. The slash is 45% of face p
 
 ## Default
 
-Normal BRC settlement needs the market to close and the vault to collect its complete Wildcat claim. Until that happens, the series stays in recovery. Partial recoveries belong to noteholders and the borrower gets no barrier rebate.
+Normal BRC settlement needs the vault's complete Wildcat claim to be paid and collected. The otherwise empty market need not be formally closed. The vault can queue its claim from maturity while the BTC fixing is still pending. After the contractual grace period, recovery can open only while that queued claim remains partly unpaid. Partial recoveries stay locked until at least the fixed write-off time, then belong entirely to noteholders; the borrower gets no barrier rebate. Finalisation first collects every amount then withdrawable from the recorded batches and snapshots the pool. Payments arriving later are outside noteholder claims.
 
-Any later write-off, negotiated recovery or fallback price process has to follow rules fixed before subscriptions open.
+The write-off time, oracle fallback source, delays, ratifier set, signature threshold and single-ratifier veto all have to be fixed before subscriptions open. Ratifiers in this prototype must be ECDSA EOAs, not Safe or other contract wallets. The contract does not establish that a valid Chainlink round is absent; that remains part of the ratifiers' evidence check.
 
 The Wildcat ArchController can replace the market's SphereX engine. A replacement can block withdrawal queueing or execution, and the BRC vault has no second route out after activation. The ArchController owner can change and push the protocol fee too. The manifest records the owner, SphereX roles, engine, fee recipient and fee seen before funding; the bits Wildcat can change remain live governance assumptions for the whole term.

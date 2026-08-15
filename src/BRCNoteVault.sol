@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import { BRCState } from "./BRCSeries.sol";
 import { BRCSeriesTerms } from "./BRCSeries.sol";
 import { BRCMath } from "./BRCMath.sol";
+import { BRCFallbackConfig } from "./BRCFallback.sol";
 import { BtcUsdFixingOracle } from "./BtcUsdFixingOracle.sol";
 import { AggregatorV3Interface } from "./interfaces/AggregatorV3Interface.sol";
 import { IERC20, IERC20Metadata } from "./interfaces/IERC20.sol";
@@ -47,6 +48,9 @@ struct ActivationTerms {
   uint32 maxFutureSkew;
   uint16 barrierBips;
   uint32 maxObservationDelay;
+  uint32 recoveryDelay;
+  uint32 writeOffDelay;
+  BRCFallbackConfig fallbackConfig;
 }
 
 interface IHooksFactoryView {
@@ -129,10 +133,13 @@ contract BRCNoteVault {
   error ActivationWindowClosed();
   error ActivationStillOpen();
   error MaturityFixingMissing();
+  error MaturityNotReached();
   error SettlementQueueWindowClosed();
   error WithdrawalNotReady();
   error IncompleteMarketPerformance();
   error RebateAlreadyClaimed();
+  error RecoveryNotReady();
+  error MarketPerformanceComplete();
 
   string public name;
   string public symbol;
@@ -162,6 +169,8 @@ contract BRCNoteVault {
   uint16 public immutable expectedProtocolFeeBips;
   uint40 public immutable activationDeadline;
   uint40 public immutable maturity;
+  uint40 public immutable recoveryEligibleAt;
+  uint40 public immutable recoveryWriteOffAt;
   BtcUsdFixingOracle public immutable fixingOracle;
 
   BRCState public state;
@@ -208,6 +217,8 @@ contract BRCNoteVault {
     uint128 noteholderReserve,
     uint128 maturityPrice
   );
+  event RecoveryEntered(uint40 eligibleAt, uint40 writeOffAt);
+  event RecoveryFinalized(uint128 recoveredAssets, uint256 outstandingNotes);
   event BorrowerRebateClaimed(address indexed recipient, uint256 amount);
   event Redeemed(
     address indexed owner,
@@ -274,8 +285,13 @@ contract BRCNoteVault {
     maturity = activationTerms_.maturity;
 
     if (activationTerms_.market == address(0)) {
+      recoveryEligibleAt = 0;
+      recoveryWriteOffAt = 0;
       fixingOracle = BtcUsdFixingOracle(address(0));
     } else {
+      uint256 recoveryEligibleAt_ =
+        uint256(activationTerms_.maturity) + activationTerms_.recoveryDelay;
+      uint256 recoveryWriteOffAt_ = recoveryEligibleAt_ + activationTerms_.writeOffDelay;
       if (
         minimumRaise_ != notional_ || notional_ > type(uint104).max
           || activationTerms_.borrower == address(0)
@@ -288,11 +304,18 @@ contract BRCNoteVault {
           || address(bytes20(activationTerms_.marketSalt)) != activationTerms_.borrower
           || activationTerms_.activationDeadline <= fundingDeadline_
           || activationTerms_.maturity <= activationTerms_.activationDeadline
+          || activationTerms_.recoveryDelay < activationTerms_.maxObservationDelay
+          || activationTerms_.writeOffDelay == 0
+          || recoveryEligibleAt_ + activationTerms_.withdrawalBatchDuration + 1 > type(uint32).max
+          || recoveryWriteOffAt_ > type(uint40).max
           || uint256(activationTerms_.maturity) + activationTerms_.maxObservationDelay
               + activationTerms_.withdrawalBatchDuration + 1 > type(uint32).max
           || IHooksFactoryView(activationTerms_.hooksFactory)
               .computeMarketAddress(activationTerms_.marketSalt) != activationTerms_.market
       ) revert InvalidTerms();
+
+      recoveryEligibleAt = uint40(recoveryEligibleAt_);
+      recoveryWriteOffAt = uint40(recoveryWriteOffAt_);
 
       fixingOracle = new BtcUsdFixingOracle(
         AggregatorV3Interface(activationTerms_.btcUsdFeed),
@@ -303,7 +326,8 @@ contract BRCNoteVault {
         activationTerms_.maxFutureSkew,
         activationTerms_.barrierBips,
         activationTerms_.maturity,
-        activationTerms_.maxObservationDelay
+        activationTerms_.maxObservationDelay,
+        activationTerms_.fallbackConfig
       );
       fixingOracle.recordInitialFixing();
     }
@@ -376,49 +400,8 @@ contract BRCNoteVault {
     returns (uint32 expiry)
   {
     if (state != BRCState.Active) revert WrongState();
-    if (!fixingOracle.hasMaturityFixing()) revert MaturityFixingMissing();
-    if (preexistingExpiries.length > 8) revert IncompleteMarketPerformance();
-
-    IWildcatActivationMarket market = IWildcatActivationMarket(expectedMarket);
-    uint256 totalQueuedScaled;
-    for (uint256 i; i < preexistingExpiries.length; i++) {
-      uint32 adoptedExpiry = preexistingExpiries[i];
-      if (adoptedExpiry == 0) revert IncompleteMarketPerformance();
-      for (uint256 j; j < i; j++) {
-        if (preexistingExpiries[j] == adoptedExpiry) revert IncompleteMarketPerformance();
-      }
-      AccountWithdrawalStatus memory adoptedStatus =
-        market.getAccountWithdrawalStatus(address(this), adoptedExpiry);
-      if (adoptedStatus.scaledAmount == 0) revert IncompleteMarketPerformance();
-      totalQueuedScaled += adoptedStatus.scaledAmount;
-      isSettlementBatch[adoptedExpiry] = true;
-      settlementBatchExpiries.push(adoptedExpiry);
-      emit SettlementWithdrawalQueued(adoptedExpiry, adoptedStatus.scaledAmount, true);
-    }
-
-    uint256 liveScaledAmount = market.scaledBalanceOf(address(this));
-    if (liveScaledAmount > 0) {
-      if (block.timestamp + uint256(expectedWithdrawalBatchDuration) + 1 > type(uint32).max) {
-        revert SettlementQueueWindowClosed();
-      }
-      if (liveScaledAmount > type(uint104).max) revert IncompleteMarketPerformance();
-      expiry = market.queueFullWithdrawal();
-      if (isSettlementBatch[expiry]) revert IncompleteMarketPerformance();
-      AccountWithdrawalStatus memory queuedStatus =
-        market.getAccountWithdrawalStatus(address(this), expiry);
-      if (queuedStatus.scaledAmount != liveScaledAmount) {
-        revert IncompleteMarketPerformance();
-      }
-      totalQueuedScaled += liveScaledAmount;
-      isSettlementBatch[expiry] = true;
-      settlementBatchExpiries.push(expiry);
-      emit SettlementWithdrawalQueued(expiry, uint104(liveScaledAmount), false);
-    }
-    if (
-      totalQueuedScaled != activatedScaledAmount || market.scaledBalanceOf(address(this)) != 0
-        || market.balanceOf(address(this)) != 0
-    ) revert IncompleteMarketPerformance();
-
+    if (block.timestamp < maturity) revert MaturityNotReached();
+    expiry = _queueCompletePosition(preexistingExpiries);
     state = BRCState.Withdrawing;
   }
 
@@ -428,6 +411,67 @@ contract BRCNoteVault {
     returns (uint256 amount)
   {
     if (state != BRCState.Withdrawing) revert WrongState();
+    amount = _executeSettlementBatch(expiry);
+  }
+
+  function enterRecovery() external {
+    if (state != BRCState.Withdrawing) revert WrongState();
+    if (block.timestamp < recoveryEligibleAt) revert RecoveryNotReady();
+    if (IWildcatActivationMarket(expectedMarket).totalSupply() == 0) {
+      revert MarketPerformanceComplete();
+    }
+
+    state = BRCState.Recovery;
+    emit RecoveryEntered(recoveryEligibleAt, recoveryWriteOffAt);
+  }
+
+  function executeRecoveryWithdrawal(uint32 expiry) external nonReentrant returns (uint256 amount) {
+    if (state != BRCState.Recovery) revert WrongState();
+    amount = _executeSettlementBatch(expiry);
+  }
+
+  function finalizeRecovery() external nonReentrant {
+    if (state != BRCState.Recovery) revert WrongState();
+    if (block.timestamp < recoveryWriteOffAt) revert RecoveryNotReady();
+
+    IWildcatActivationMarket market = IWildcatActivationMarket(expectedMarket);
+    uint256 totalScaled;
+    uint256 totalRecovered;
+    uint256 batchCount = settlementBatchExpiries.length;
+    if (batchCount == 0) revert IncompleteMarketPerformance();
+    for (uint256 i; i < batchCount; i++) {
+      uint32 expiry = settlementBatchExpiries[i];
+      WithdrawalBatch memory batch = market.getWithdrawalBatch(expiry);
+      AccountWithdrawalStatus memory status =
+        market.getAccountWithdrawalStatus(address(this), expiry);
+      if (batch.scaledTotalAmount == 0 || status.scaledAmount != batch.scaledTotalAmount) {
+        revert IncompleteMarketPerformance();
+      }
+      if (expiry >= block.timestamp) revert WithdrawalNotReady();
+      if (status.normalizedAmountWithdrawn != batch.normalizedAmountPaid) {
+        _executeSettlementBatch(expiry);
+        status = market.getAccountWithdrawalStatus(address(this), expiry);
+      }
+      totalScaled += status.scaledAmount;
+      totalRecovered += status.normalizedAmountWithdrawn;
+    }
+    if (totalScaled != activatedScaledAmount || totalRecovered > type(uint128).max) {
+      revert IncompleteMarketPerformance();
+    }
+
+    uint128 recovered = uint128(totalRecovered);
+    if (settlementAsset.balanceOf(address(this)) < settlementBaselineBalance + recovered) {
+      revert IncompleteMarketPerformance();
+    }
+
+    wildcatProceeds = recovered;
+    noteholderReserve = recovered;
+    borrowerRebateClaimed = true;
+    state = BRCState.Redeemable;
+    emit RecoveryFinalized(recovered, totalSupply);
+  }
+
+  function _executeSettlementBatch(uint32 expiry) internal returns (uint256 amount) {
     if (!isSettlementBatch[expiry]) revert IncompleteMarketPerformance();
     IWildcatActivationMarket market = IWildcatActivationMarket(expectedMarket);
     WithdrawalBatch memory batch = market.getWithdrawalBatch(expiry);
@@ -447,11 +491,9 @@ contract BRCNoteVault {
 
   function finalizeSettlement() external {
     if (state != BRCState.Withdrawing) revert WrongState();
+    if (!fixingOracle.hasMaturityFixing()) revert MaturityFixingMissing();
     IWildcatActivationMarket market = IWildcatActivationMarket(expectedMarket);
-    MarketState memory marketState = market.previousState();
-    if (!marketState.isClosed || market.totalSupply() != 0) {
-      revert IncompleteMarketPerformance();
-    }
+    if (market.totalSupply() != 0) revert IncompleteMarketPerformance();
 
     uint256 totalScaled;
     uint256 totalProceeds;
@@ -721,6 +763,54 @@ contract BRCNoteVault {
         || !hookedMarket.transfersDisabled || hookedMarket.fixedTermEndTime != maturity
         || hookedMarket.allowClosureBeforeTerm || hookedMarket.allowTermReduction
     ) revert ActivationPolicyMismatch();
+  }
+
+  function _queueCompletePosition(uint32[] calldata preexistingExpiries)
+    internal
+    returns (uint32 expiry)
+  {
+    if (preexistingExpiries.length > 8) revert IncompleteMarketPerformance();
+
+    IWildcatActivationMarket market = IWildcatActivationMarket(expectedMarket);
+    uint256 totalQueuedScaled;
+    for (uint256 i; i < preexistingExpiries.length; i++) {
+      uint32 adoptedExpiry = preexistingExpiries[i];
+      if (adoptedExpiry == 0) revert IncompleteMarketPerformance();
+      for (uint256 j; j < i; j++) {
+        if (preexistingExpiries[j] == adoptedExpiry) revert IncompleteMarketPerformance();
+      }
+      AccountWithdrawalStatus memory adoptedStatus =
+        market.getAccountWithdrawalStatus(address(this), adoptedExpiry);
+      if (adoptedStatus.scaledAmount == 0) revert IncompleteMarketPerformance();
+      totalQueuedScaled += adoptedStatus.scaledAmount;
+      isSettlementBatch[adoptedExpiry] = true;
+      settlementBatchExpiries.push(adoptedExpiry);
+      emit SettlementWithdrawalQueued(adoptedExpiry, adoptedStatus.scaledAmount, true);
+    }
+
+    uint256 liveScaledAmount = market.scaledBalanceOf(address(this));
+    if (liveScaledAmount > 0) {
+      uint256 duration = market.previousState().isClosed ? 0 : expectedWithdrawalBatchDuration;
+      if (block.timestamp + duration + 1 > type(uint32).max) {
+        revert SettlementQueueWindowClosed();
+      }
+      if (liveScaledAmount > type(uint104).max) revert IncompleteMarketPerformance();
+      expiry = market.queueFullWithdrawal();
+      if (isSettlementBatch[expiry]) revert IncompleteMarketPerformance();
+      AccountWithdrawalStatus memory queuedStatus =
+        market.getAccountWithdrawalStatus(address(this), expiry);
+      if (queuedStatus.scaledAmount != liveScaledAmount) {
+        revert IncompleteMarketPerformance();
+      }
+      totalQueuedScaled += liveScaledAmount;
+      isSettlementBatch[expiry] = true;
+      settlementBatchExpiries.push(expiry);
+      emit SettlementWithdrawalQueued(expiry, uint104(liveScaledAmount), false);
+    }
+    if (
+      totalQueuedScaled != activatedScaledAmount || market.scaledBalanceOf(address(this)) != 0
+        || market.balanceOf(address(this)) != 0
+    ) revert IncompleteMarketPerformance();
   }
 
   function _finishSettlementIfComplete() internal {

@@ -6,14 +6,15 @@ Define the two exceptional paths without weakening the ordinary one: partial Wil
 
 ## Market recovery
 
-Enter `Recovery` when the normal full-performance condition cannot be met after the contractual grace period or when Wildcat accounting records a terminal shortfall.
+The vault may queue the complete position from maturity without waiting for the BTC fixing. After the contractual grace period, anybody may move that `Withdrawing` series into `Recovery` only while the queued claim remains partly unpaid. A fully paid claim must use normal settlement, whether or not the borrower has closed the otherwise empty market. The prototype makes these choices explicit:
 
 - Reserve every recovered settlement-asset unit for noteholders.
 - Keep accepting and accounting for later Wildcat recoveries.
 - Never calculate or pay a borrower rebate from a partial recovery.
-- Permit pro-rata interim redemptions only if cumulative accounting gives existing and later claimants the same economic treatment.
-- Add a terminal recovery or write-off transition with an objective delay and authority stated in the series terms.
-- Emit cumulative debt, withdrawal, recovery, redemption and write-off figures at every transition.
+- Keep redemptions closed while recoveries are arriving; this avoids giving early and late redeemers different claims.
+- Use a write-off eligibility time fixed at deployment. Finalisation is permissionless after that time and snapshots the amounts paid by Wildcat in that transaction.
+- Require the complete activated scaled position and an expired batch list before finalisation. Pull every then-withdrawable amount and derive the pool from cumulative Wildcat withdrawal status rather than the vault's loose token balance.
+- Treat anything arriving after finalisation as surplus outside the noteholder pool.
 
 Default and oracle failure are independent. A valid `ST` does not entitle the borrower to a rebate when the market has underperformed, and borrower default must not select a convenient BTC price.
 
@@ -22,18 +23,18 @@ Default and oracle failure are independent. A valid `ST` does not entitle the bo
 The fallback path opens only when:
 
 - maturity and `maxObservationDelay` have passed;
-- no primary Chainlink round can satisfy the task 5 rule; and
 - the additional fallback waiting period has elapsed.
 
-An oracle shutdown, proxy migration or inaccessible historical round may satisfy the first two conditions. A temporarily inconvenient price may not.
+An oracle shutdown, proxy migration or inaccessible historical round may justify using it. A temporarily inconvenient price may not. Solidity cannot prove that a valid Chainlink round does not exist but remains unsubmitted, so the ratifiers carry that evidence obligation.
 
 ## Proposal and challenge
 
-- Any account may propose an answer, observation time, source identifier and evidence hash after the trigger.
+- Any immutable ratifier may propose an answer, observation time, the fixed source identifier and an evidence hash after the trigger. This stops an outsider occupying the single pending slot; the ratifier trust model already gives each ratifier a veto.
 - Start a challenge period on proposal; do not write `ST` yet.
-- A proposal needs the immutable ratifier threshold from the series terms after the challenge period.
+- A proposal needs the immutable ratifier threshold from the series terms after the challenge period. This prototype accepts ECDSA EOAs only; contract wallets require a later EIP-1271 implementation.
 - Ratifiers sign the complete series identifier, proposed value, observation time, evidence hash, source and chain ID.
-- A competing proposal, successful challenge or recovered primary Chainlink proof cancels the pending proposal under stated priority rules.
+- Any one ratifier may veto the pending proposal. A replacement gets a new nonce and none of the old approvals.
+- A valid primary Chainlink proof cancels a pending proposal. Once the threshold-approved fallback is final, it remains the stored fixing.
 - Once accepted, store the fallback record once and expose every signature and evidence reference needed for review.
 
 The legal terms should name the authoritative off-chain source and correction convention. Code should enforce time, quorum and replay rules; it cannot decide whether a news page is financially authoritative.
@@ -41,20 +42,20 @@ The legal terms should name the authoritative off-chain source and correction co
 ## Tests to add
 
 - Partial recovery before and after a valid maturity fixing.
-- Several late recoveries with redemptions between them.
+- Several late recoveries, with redemption attempts rejected until write-off.
 - Borrower attempt to claim a rebate during recovery.
 - Fallback proposal before each waiting period expires.
 - Duplicate, expired, wrong-chain and wrong-series signatures.
-- Threshold changes attempted after deployment.
+- Invalid, duplicated and contract-wallet ratifier sets at deployment; there is no threshold setter afterwards.
 - Competing proposals and a primary proof arriving during challenge.
 - Cancellation, replacement and repeated finalisation.
-- Terminal write-off followed by an unexpected token transfer.
+- Permissionless terminal write-off followed by an unexpected token transfer, plus a late recovery queue that cannot finalise before expiry.
 
 ## Acceptance
 
 - No default path transfers value to the borrower.
 - No single account can set `ST` immediately.
-- Primary Chainlink evidence wins whenever the contractual primary rule remains provable.
+- Primary Chainlink evidence wins while the fallback proposal is pending.
 - Recovery and fallback records are reproducible from emitted data and referenced evidence.
 
 ## Review requirement

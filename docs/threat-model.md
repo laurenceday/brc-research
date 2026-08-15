@@ -24,7 +24,11 @@ Reading `latestRoundData()` whenever somebody settles gives that caller a timing
 
 ### The feed is stale, missing or replaced
 
-Invalid answers pause settlement. The delayed fallback can propose a value, but that value does nothing until the challenge period ends.
+Invalid answers pause the primary route. After the observation deadline and fallback wait, any immutable ratifier may propose a value from the source fixed in the series terms. The value does nothing until the challenge period ends and the immutable threshold has signed. Restricting proposal creation stops an outsider squatting on the sole pending slot. Any ratifier can veto it, and a valid primary proof cancels it while it is pending.
+
+The contract cannot prove that no valid Chainlink round exists but has merely gone unsubmitted. Ratifiers must check that before signing. Once the fallback is final, a later primary proof does not replace it.
+
+The fallback verifier uses `ecrecover`, so every immutable ratifier must be an ECDSA EOA. Deployment rejects addresses that already contain code. The launch rehearsal must also collect and verify one series-domain signature from every ratifier; a counterfactual contract-wallet address can otherwise look empty at deployment but never approve a proposal.
 
 ### The borrower closes or reprices early
 
@@ -40,7 +44,15 @@ The vault is non-upgradeable and has no general call path. Its market, asset, fe
 
 ### The borrower defaults and still receives the slash
 
-There is no rebate in recovery. Partial Wildcat proceeds stay reserved for noteholders until the market fully performs or recovery reaches its terminal state.
+There is no rebate in recovery, even if a valid breached-barrier price already exists. The vault may queue from maturity before the BTC fixing is available, so oracle timing cannot force a funded claim into recovery. Recovery only opens after the grace period while that queued claim remains partly unpaid. A fully paid claim follows normal settlement and preserves any earned rebate. Partial Wildcat proceeds stay locked until the date fixed for write-off eligibility, then the recovered pool belongs entirely to noteholders.
+
+### Somebody writes off recoverable value
+
+Recovery finalisation is permissionless after the fixed eligibility time. Before it can happen, the vault must account for the complete scaled position and every recorded batch must have expired. Finalisation collects every amount Wildcat has made withdrawable, then takes the terminal snapshot; it does not require Wildcat to pay the rest. A caller cannot race an executable withdrawal with a zero-value write-off. Later market payments and stray token transfers do not increase note claims.
+
+### A fallback signature is replayed
+
+Each signature binds the chain ID, oracle address, series identifier, proposal nonce, price, observation time, evidence hash and source. Approvals are one per immutable ratifier and per nonce. A vetoed proposal cannot reuse approvals when its replacement gets a new nonce.
 
 ### Rounding moves value between parties
 
@@ -52,7 +64,7 @@ Wildcat's sanctions path can quarantine the lender position or its withdrawal. I
 
 ### The withdrawal expiry wraps
 
-Wildcat stores withdrawal expiries in 32 bits. The vault refuses terms that would run off the end after allowing for the observation window, withdrawal delay and the extra second Wildcat may need on close. It checks again at queue time because a keeper can still be late. Miss that window and the position stays `Active` for recovery; the vault never asks Wildcat to write a wrapped expiry.
+Wildcat stores withdrawal expiries in 32 bits. The vault refuses terms that would run off the end after allowing for the observation window, withdrawal delay and the extra second Wildcat may need on close. It checks again at queue time because a keeper can still be late. Miss that window and the position stays `Active`; neither normal settlement nor recovery can begin. The vault never asks Wildcat to write a wrapped expiry, and operators must use the external transaction and legal fallback plan.
 
 ### SphereX blocks a withdrawal
 
@@ -71,3 +83,5 @@ The vault checks the fee recipient and protocol fee before activation. After tha
 - No address other than the vault can hold a direct market position.
 - Provider configuration remains sealed.
 - Settlement timing cannot change the accepted maturity round.
+- Recovery never creates a borrower rebate.
+- A fallback fixing needs the deployed threshold and survives no ratifier veto.

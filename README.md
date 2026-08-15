@@ -27,3 +27,5 @@ The example uses the standard Ethereum mainnet Chainlink BTC/USD proxy listed at
 11. Produce the security and operational package.
 
 The stack is linear. Review and merge it from the bottom.
+
+Deployment lives in [`docs/deployment-tooling.md`](docs/deployment-tooling.md). Run it once without `--broadcast`, get the printed hashes and addresses signed off, then run the read-only verifier against the record before funding.

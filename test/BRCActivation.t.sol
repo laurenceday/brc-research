@@ -583,6 +583,7 @@ contract BRCActivationTest is Test {
       fundingDeadline,
       false,
       ActivationTerms({
+        seriesManifestHash: bytes32(0),
         market: address(0),
         borrower: address(0),
         borrowerPrincipal: address(0),
@@ -676,6 +677,7 @@ contract BRCActivationTest is Test {
 
   function _activationTerms(address expectedMarket) internal view returns (ActivationTerms memory) {
     return ActivationTerms({
+      seriesManifestHash: keccak256("test manifest"),
       market: expectedMarket,
       borrower: address(this),
       borrowerPrincipal: address(this),

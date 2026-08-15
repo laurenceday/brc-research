@@ -72,3 +72,19 @@ Leads not pursued: no provider contract, private catalogue or commercial entitle
 available. Candidate labels therefore remain discovery evidence rather than security or
 availability findings. The step changed no Solidity, so a Solidity audit and new fuzz harness were
 not applicable.
+
+## Step 3, round 2 -- 16 August 2026
+
+This round reviewed the fixed tree at
+`44d7e4199f55b9ca48a65ecac092c5a5a783910f`. It repeated the source-adjacency and compatibility
+searches, checked every candidate table for an explicit status label, and reran the dependency,
+payoff-vector, 229-test, authored-Markdown and prose gates.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| -- | -- | -- | No finding. | clean |
+
+Leads not pursued: address-level inspection was limited to the three named Ethereum Chainlink Data
+Feeds. Every other provider or asset remains a catalogue candidate or inquiry, and the report says
+so at each decision point. A real series still needs source-specific technical, commercial and
+legal review.

@@ -60,7 +60,7 @@ the notional, and holds the complete scaled market position.
 At maturity, any caller can queue that complete position without waiting for the BTC fixing. A
 fully paid claim plus a stored maturity fixing permits normal settlement. The vault calculates a
 cash rebate for the borrower and reserves the rest of the Wildcat proceeds for noteholders. If the
-claim remains partly unpaid after the grace period, recovery may begin. Recovery never pays a
+claim remains partly unpaid after the separate `recoveryDelay`, recovery may begin. Recovery never pays a
 borrower rebate; after the fixed write-off time and the expiry of every recorded batch, all
 collected Wildcat proceeds form the noteholder reserve.
 
@@ -394,7 +394,7 @@ review packet while research is underway.
 - **Primary fixing:** The initial or maturity price proven from the pinned Chainlink proxy and round
   rules.
 - **Recovery:** The path for a completely queued Wildcat claim that remains partly unpaid after the
-  contractual grace period.
+  contractual `recoveryDelay`, separate from Wildcat's `delinquencyGracePeriod`.
 - **Reference asset:** The asset, rate, index or value whose fixing controls the contingent payoff.
 - **Reverse convertible:** Issuer debt combined economically with a put sold by the investor.
 - **Singleton lender:** The vault is the only address admitted to hold the direct Wildcat lender

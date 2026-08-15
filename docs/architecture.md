@@ -54,7 +54,7 @@ Funding -> Funded -> Active -> Withdrawing -> Redeemable -> Settled
    v          v
 Cancelled  Cancelled
 
-Active -- at maturity --> Withdrawing -- unpaid after grace --> Recovery
+Active -- at maturity --> Withdrawing -- unpaid after recoveryDelay --> Recovery
                             |                                |
                             v                                v
                         Redeemable                       Redeemable

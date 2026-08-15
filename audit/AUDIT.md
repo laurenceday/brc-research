@@ -88,3 +88,18 @@ Leads not pursued: address-level inspection was limited to the three named Ether
 Feeds. Every other provider or asset remains a catalogue candidate or inquiry, and the report says
 so at each decision point. A real series still needs source-specific technical, commercial and
 legal review.
+
+## Step 4, round 1 -- 16 August 2026
+
+This round reviewed commit `4850f35a9fa80ab82d10977bde8adddbada064f0`. It cold-read the pack
+once as a lender, once as a borrower and once against the contracts. It also rendered every Mermaid
+block and checked each normal/recovery arrow against the vault state machine.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| S4-R1-01 | low | `docs/bd/faq.md` | The fallback answer attributed ratifier construction checks to “the verifier” rather than the fixing oracle, which could send a reviewer to the wrong contract. | fixed on the step audit branch |
+| S4-R1-02 | low | `docs/bd/faq.md`, `docs/bd/lender-brief.md` | The pack called the notes ERC-20-like but did not state the integration boundary: there is no permit or delegated redemption. A custody reader could infer broader token support. | fixed on the step audit branch |
+
+Leads not pursued: the material does not price a series, select a counterparty or claim legal,
+accounting, tax, data-rights or suitability conclusions. Those depend on facts absent from the
+research repository and remain explicit discovery questions.

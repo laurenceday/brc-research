@@ -14,3 +14,17 @@ and hook-policy claims with the current contracts and tests, then exercised the 
 Leads not pursued: the Markdown checker deliberately does not validate external links, anchors,
 Mermaid rendering or factual accuracy. Those checks remain part of the final reader-path and prose
 step rather than being represented as CI guarantees.
+
+## Step 1, round 2 -- 16 August 2026
+
+This round reviewed the fixed tree at
+`301656b7f7516e20f1d6a4400a9f3e35e8e2986a`. It repeated the lifecycle terminology search, checked
+the implementation-status pages against the contract-backed baseline, ran the authored-Markdown
+gate and ran Imprimatur across all 23 authored Markdown files.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| -- | -- | -- | No finding. | clean |
+
+Leads not pursued: external-link and rendered-diagram checks remain assigned to step 5. No Solidity
+changed in this step, so Solidity audit and fuzz-suite generation were not applicable to this diff.

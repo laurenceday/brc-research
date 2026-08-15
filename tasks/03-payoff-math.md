@@ -2,11 +2,11 @@
 
 ## Aim
 
-Put the series terms and cash-settlement arithmetic in a pure library before state, tokens or oracle calls can obscure it.
+Put the series terms and cash-settlement arithmetic in a pure library before state, tokens or oracle calls make the thing harder to reason about.
 
 ## Terms
 
-Add a `BRCSeriesTerms` type containing notional, strike, barrier, maturity and the settlement-asset precision. Reject zero notional, zero strike, a barrier above the strike, and values that cannot be represented safely by later accounting.
+Add a `BRCSeriesTerms` type with the notional, strike, barrier, maturity and settlement-asset precision. Reject zero notional, zero strike, a barrier above the strike, and values the later accounting cannot represent safely.
 
 For the example series, `K = S0` and `B = 60% × S0`. At maturity:
 
@@ -17,17 +17,17 @@ borrowerRebate = min(slash, recoveredPrincipal)
 noteholderPool = collectedAssets - borrowerRebate
 ```
 
-If a future series permits `ST > K` while breached under a different observation convention, the implementation must clamp the slash at zero rather than underflow. Use full-precision multiplication and state every rounding direction in the library.
+If a future series somehow permits `ST > K` while breached under a different observation convention, clamp the slash at zero rather than underflowing. Use full-precision multiplication and say which way every division rounds.
 
 ## Work
 
 - Add pure functions for barrier derivation, breach detection, principal slash, borrower rebate, noteholder pool and pro-rata note redemption.
-- Separate principal from accrued interest. The BTC put may reduce face value; it may not reduce the contractual coupon or other assets collected above principal.
+- Keep principal separate from accrued interest. The BTC put may reduce face value; it cannot reduce the contractual coupon or other assets collected above principal.
 - Define the settlement states used by later contracts without adding transition code.
 - Add custom errors for malformed terms and impossible accounting inputs.
-- Document units at every external edge: feed decimals, settlement-asset decimals and note-token decimals.
+- Write down the units at every external edge: feed decimals, settlement-asset decimals and note-token decimals.
 
-## Properties to prove
+## Things the tests need to prove
 
 - `slash <= notional` for every accepted input.
 - Lower `ST` cannot reduce the slash after the barrier has been breached.
@@ -46,4 +46,4 @@ If a future series permits `ST > K` while breached under a different observation
 
 ## Not in this task
 
-Do not issue notes, read Chainlink, deposit in Wildcat or transfer a borrower rebate. This branch determines amounts; later branches decide when those amounts may move.
+This branch does not issue notes, read Chainlink, deposit in Wildcat or transfer a borrower rebate. It works out the amounts; later branches decide when any of them can move.

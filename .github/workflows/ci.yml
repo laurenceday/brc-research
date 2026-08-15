@@ -16,7 +16,7 @@ jobs:
           submodules: recursive
       - uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.7.1
       - name: Check dependency pins
         run: ./script/check-dependencies.sh
       - name: Check formatting
@@ -25,3 +25,10 @@ jobs:
         run: forge build
       - name: Test
         run: FOUNDRY_PROFILE=ci forge test
+      - name: Check maturity and recovery gas bounds
+        run: >-
+          forge snapshot --check
+          --match-test
+          'testGasRecordsMaturityAfterMaximumProofWalk|testGasFinalizesRecoveryWithMaximumAdoptedBatches'
+      - name: Check release gate wiring
+        run: bash -n script/release-gate.sh

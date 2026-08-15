@@ -2,7 +2,7 @@
 
 ## Before deployment
 
-1. Pin the audited v2-protocol commit and check it contains the final `SingletonFixedTermHooks` implementation.
+1. Pin the reviewed v2-protocol candidate and check it contains the intended `SingletonFixedTermHooks` implementation. The current research pin is the head of an open PR, not a final or audited release. Record the exact review or audit artefact that would justify changing that status before deployment.
 2. Check the approved hooks template, hooks factory and singleton role-provider factory addresses. Record the Wildcat ArchController owner, SphereX admin, operator and current engine; these are trust inputs, and the engine can change later. Record the template's fee recipient and protocol fee as well.
 3. Check that Wildcat accepts the settlement asset, then record its address and decimals.
 4. Check the standard Ethereum mainnet Chainlink BTC/USD proxy, `description()` and `decimals()` against Chainlink's current directory.

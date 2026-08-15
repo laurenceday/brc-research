@@ -1,0 +1,2 @@
+BRCRecoveryTest:testGasFinalizesRecoveryWithMaximumAdoptedBatches() (gas: 628307)
+BtcUsdMaturityFixingTest:testGasRecordsMaturityAfterMaximumProofWalk() (gas: 526475)

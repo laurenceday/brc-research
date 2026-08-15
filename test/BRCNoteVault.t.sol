@@ -273,6 +273,7 @@ contract BRCNoteVaultTest is Test {
       deadline,
       restricted,
       ActivationTerms({
+        seriesManifestHash: bytes32(0),
         market: address(0),
         borrower: address(0),
         borrowerPrincipal: address(0),

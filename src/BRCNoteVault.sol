@@ -23,6 +23,7 @@ using LibHooksConfig for HooksConfig;
 using LibRoleProvider for RoleProvider;
 
 struct ActivationTerms {
+  bytes32 seriesManifestHash;
   address market;
   address borrower;
   address borrowerPrincipal;
@@ -151,6 +152,7 @@ contract BRCNoteVault {
   uint128 public immutable minimumRaise;
   uint40 public immutable fundingDeadline;
   bool public immutable transfersRestricted;
+  bytes32 public immutable seriesManifestHash;
   address public immutable expectedMarket;
   address public immutable expectedBorrower;
   address public immutable expectedBorrowerPrincipal;
@@ -264,6 +266,7 @@ contract BRCNoteVault {
     minimumRaise = minimumRaise_;
     fundingDeadline = fundingDeadline_;
     transfersRestricted = transfersRestricted_;
+    seriesManifestHash = activationTerms_.seriesManifestHash;
 
     expectedMarket = activationTerms_.market;
     expectedBorrower = activationTerms_.borrower;
@@ -293,8 +296,8 @@ contract BRCNoteVault {
         uint256(activationTerms_.maturity) + activationTerms_.recoveryDelay;
       uint256 recoveryWriteOffAt_ = recoveryEligibleAt_ + activationTerms_.writeOffDelay;
       if (
-        minimumRaise_ != notional_ || notional_ > type(uint104).max
-          || activationTerms_.borrower == address(0)
+        activationTerms_.seriesManifestHash == bytes32(0) || minimumRaise_ != notional_
+          || notional_ > type(uint104).max || activationTerms_.borrower == address(0)
           || activationTerms_.borrowerPrincipal == address(0)
           || activationTerms_.hooksFactory == address(0)
           || activationTerms_.hooksTemplate == address(0)

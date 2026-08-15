@@ -12,9 +12,11 @@
 
 ## Deploy the series
 
-1. Choose the market salt and calculate the expected market address through `HooksFactory.computeMarketAddress`.
-2. Check that the salt starts with the operational borrower address. Record the operational borrower and its registered principal separately.
-3. Read the current BTC/USD proxy round, then deploy a non-upgradeable `BRCNoteVault` bound to the expected market. Deployment stores `S0`, the strike and the barrier before subscriptions open.
+Start with the dry-run and verification commands in [`deployment-tooling.md`](deployment-tooling.md). Keep the wallet key and RPC credentials out of the manifest and deployment record.
+
+1. Deploy a `BRCBorrowerAccount` through an account factory approved by the Wildcat identity registry, then register it against the borrower principal.
+2. Choose the vault and market salts. Check that both start with the operational borrower account address, then calculate the expected market through `HooksFactory.computeMarketAddress`.
+3. Read the current BTC/USD proxy round. Build the non-upgradeable `BRCNoteVault` creation bytecode bound to the manifest hash and expected market, then calculate its borrower-scoped CREATE2 address.
 4. Encode one zero-TTL singleton provider with the vault as lender. Do not supply an existing provider or a second one.
 5. Record the provider factory's deployed runtime code hash in the manifest.
 6. Encode the fixed-term hook data as five complete ABI words:
@@ -30,9 +32,12 @@ abi.encode(
 ```
 
 7. Request deposit and transfer dispatch. Leave raw withdrawal access false. The fixed-term parent adds the queue, close and APR/reserve-ratio dispatch it requires.
-8. Call `deployMarketAndHooks` from the operational borrower account.
+8. Have the borrower principal call the operational borrower account. The account checks the shared hook nonce, deploys the vault and calls `deployMarketAndHooks` atomically. Any changed nonce, principal or address reverts the whole transaction.
+9. Keep the generated record with the approved manifest. It contains the readable manifest, ABI encoding, manifest hash, calculated addresses and deployed code hashes.
 
 ## Verify before moving funds
+
+Run the read-only verifier against the approved manifest and generated record. Do not fund unless it exits successfully.
 
 Check the market address, asset, operational borrower, registered borrower principal, empty pending-borrower slot, supply cap, APR, reserve ratio, delinquency fee, delinquency grace period, withdrawal-batch duration, fee recipient, activation-time protocol fee, maturity and hook address. Confirm that the hook administrator is the registered principal. Then check that provider configuration is sealed, there is one pull provider and no push provider, and the provider's lender is the vault with a zero TTL.
 

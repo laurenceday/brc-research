@@ -1,6 +1,6 @@
 # Task 01: fix the product specification
 
-This PR decides what we are building before the contracts make any of it expensive to change.
+This PR pins down what we're building before the contracts make it annoying to change.
 
 ## Work
 
@@ -11,7 +11,7 @@ This PR decides what we are building before the contracts make any of it expensi
 - Record the trust assumptions, sanctions behaviour and deployment sequence.
 - Name the points that still require legal, tax, distribution or data-licensing advice.
 
-## Done when
+## We're done when
 
 - Barrier equality and rounding have one answer.
 - `S0` and `ST` each have an onchain selection rule.
@@ -20,4 +20,4 @@ This PR decides what we are building before the contracts make any of it expensi
 
 ## Not in this PR
 
-No Solidity, deployment scripts or production claim. Upstream v2-protocol PR #124 remains a separate prerequisite.
+No Solidity, deployment scripts or production claim here. Upstream v2-protocol PR #124 is still a separate prerequisite.

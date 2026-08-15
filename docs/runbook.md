@@ -2,20 +2,20 @@
 
 ## Before deployment
 
-1. Pin the audited v2-protocol commit and confirm that it contains the final `SingletonFixedTermHooks` implementation.
-2. Confirm the approved hooks template, hooks factory and singleton role-provider factory addresses.
-3. Verify the settlement asset is accepted by Wildcat and record its address and decimals.
-4. Verify the standard Ethereum mainnet Chainlink BTC/USD proxy, `description()` and `decimals()` against Chainlink's current directory.
+1. Pin the audited v2-protocol commit and check it contains the final `SingletonFixedTermHooks` implementation.
+2. Check the approved hooks template, hooks factory and singleton role-provider factory addresses.
+3. Check that Wildcat accepts the settlement asset, then record its address and decimals.
+4. Check the standard Ethereum mainnet Chainlink BTC/USD proxy, `description()` and `decimals()` against Chainlink's current directory.
 5. Freeze the series manifest, legal terms, note transfer policy, maturity, oracle delay and fallback procedure.
 6. Run unit, fuzz, stateful accounting-property and mainnet-fork tests against the pinned commits.
 
 ## Deploy the series
 
 1. Choose the market salt and calculate the expected market address through `HooksFactory.computeMarketAddress`.
-2. Deploy a non-upgradeable `BRCNoteVault` bound to that expected address.
+2. Deploy a non-upgradeable `BRCNoteVault` bound to the expected address.
 3. Open subscriptions. Enforce the notional cap and funding deadline.
 4. Close funding or enable refunds if the minimum raise was missed.
-5. Encode one zero-TTL singleton provider whose lender is the vault. Do not supply an existing provider or a second provider.
+5. Encode one zero-TTL singleton provider with the vault as lender. Do not supply an existing provider or a second one.
 6. Encode the fixed-term hook data as five complete ABI words:
 
 ```solidity
@@ -33,9 +33,9 @@ abi.encode(
 
 ## Verify before moving funds
 
-Check the market address, asset, borrower, supply cap, APR, reserve ratio, maturity and hook address. Check that provider configuration is sealed, that there is one pull provider and no push provider, and that the provider's lender is the vault with a zero TTL.
+Check the market address, asset, borrower, supply cap, APR, reserve ratio, maturity and hook address. Then check that provider configuration is sealed, there is one pull provider and no push provider, and the provider's lender is the vault with a zero TTL.
 
-Read `getHookedMarket` and check deposit access, transfer access, disabled market-token transfers, disabled early closure and disabled term reduction. Simulate an unrelated deposit, market-token transfer, pre-maturity close, repricing, term reduction and provider mutation. Each must revert.
+Read `getHookedMarket` and check deposit access, transfer access, disabled market-token transfers, disabled early closure and disabled term reduction. Try an unrelated deposit, market-token transfer, pre-maturity close, repricing, term reduction and provider mutation. Every call should revert.
 
 Check the vault bytecode, series manifest hash, note supply, funding total, feed metadata and expected market address.
 
@@ -50,7 +50,7 @@ Check the vault bytecode, series manifest hash, note supply, funding total, feed
 
 ## During the term
 
-Monitor the Chainlink feed, proxy phase, deprecation notices, market liquidity, delinquency, protocol-fee changes, the vault's sanctions status and the maturity transaction path. Rehearse the maturity and fallback calls on a fork before the observation time.
+Keep an eye on the Chainlink feed, proxy phase, deprecation notices, market liquidity, delinquency, protocol-fee changes, the vault's sanctions status and the maturity transaction path. Rehearse the maturity and fallback calls on a fork before the observation time.
 
 ## At maturity
 
@@ -63,4 +63,4 @@ Monitor the Chainlink feed, proxy phase, deprecation notices, market liquidity, 
 7. Calculate the slash and transfer the borrower rebate.
 8. Open pro-rata note redemption against the remaining USDC.
 
-If the market does not perform in full, enter recovery and do not pay the borrower rebate.
+If the market does not perform in full, enter recovery. Do not pay the borrower rebate.

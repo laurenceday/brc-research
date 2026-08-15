@@ -1,12 +1,12 @@
 # Example BTC BRC terms
 
-These terms describe the research series. They are not a priced offer and do not settle the legal or tax treatment of the note.
+These are the terms for the research series. They are not a priced offer, and they do not settle the note's legal or tax treatment.
 
 ## Instrument
 
-The note is a 90-day, USDC-denominated barrier reverse convertible linked to BTC/USD. Investors fund a vault. The vault is the sole lender in a fixed-term Wildcat market and issues one note unit for each smallest unit of subscribed USDC.
+The note is a 90-day, USDC-denominated barrier reverse convertible linked to BTC/USD. Investors fund a vault, which becomes the sole lender in a fixed-term Wildcat market. The vault issues one note unit for each smallest unit of USDC subscribed.
 
-The Wildcat position accrues the lender return. The note pays at maturity rather than distributing a running cash coupon.
+The Wildcat position accrues the lender return. The note pays at maturity instead of sending out a running cash coupon.
 
 ## Example parameters
 
@@ -25,15 +25,15 @@ The Wildcat position accrues the lender return. The note pays at maturity rather
 | Breach | `ST <= B` |
 | Settlement | Cash in USDC |
 
-The final deployment may use different commercial parameters. The manifest must record them without changing the formulae below.
+A final deployment may use different commercial parameters. Whatever they are, the manifest must record them without changing the formulae below.
 
 ## Price observations
 
-`S0` is a fresh Chainlink BTC/USD answer recorded when the vault activates and deposits the funded notional into Wildcat.
+`S0` is a fresh Chainlink BTC/USD answer, recorded when the vault activates and deposits the funded notional into Wildcat.
 
-`ST` is the first valid Chainlink BTC/USD proxy round whose `updatedAt` is at or after maturity and no later than `maturity + maxOracleDelay`. A settlement caller must not be able to choose a later round because its answer is more favourable.
+`ST` is the first valid Chainlink BTC/USD proxy round with an `updatedAt` at or after maturity, but no later than `maturity + maxOracleDelay`. A settlement caller cannot pick a later round just because its answer looks nicer.
 
-The feed address, decimals and description hash are fixed in the series terms and checked onchain. A missing or invalid answer pauses settlement. It never implies that the barrier was missed.
+The feed address, decimals and description hash are fixed in the series terms and checked onchain. A missing or invalid answer pauses settlement; it never means the barrier was missed.
 
 ## Payoff
 
@@ -49,13 +49,12 @@ borrowerRebate = slash
 noteholderPool = actualWildcatProceeds - slash
 ```
 
-The slash is capped at `N`. It applies to face principal, not accrued Wildcat interest.
+The slash cannot exceed `N`. It applies to face principal, not accrued Wildcat interest.
 
-If `K` is 100,000, `B` is 60,000 and `ST` is 55,000, the slash is 45% of face principal. Noteholders keep 55% of principal plus the Wildcat interest actually collected. If `ST` is 65,000, the European barrier was not breached and noteholders keep full principal plus collected interest.
+Say `K` is 100,000, `B` is 60,000 and `ST` is 55,000. The slash is 45% of face principal, so noteholders keep 55% of principal plus the Wildcat interest actually collected. If `ST` is 65,000, the European barrier was not breached and noteholders keep full principal plus collected interest.
 
 ## Default
 
-Normal BRC settlement requires the market to close and the vault to collect its complete Wildcat claim. Until then, the series remains in recovery. Partial recoveries belong to noteholders and the borrower receives no barrier rebate.
+Normal BRC settlement needs the market to close and the vault to collect its complete Wildcat claim. Until that happens, the series stays in recovery. Partial recoveries belong to noteholders and the borrower gets no barrier rebate.
 
-Any later write-off, negotiated recovery or fallback price process must follow rules fixed before subscriptions open.
-
+Any later write-off, negotiated recovery or fallback price process has to follow rules fixed before subscriptions open.

@@ -2,11 +2,11 @@
 
 ## Contracts
 
-`BRCNoteVault` owns the one direct Wildcat lender position. Investors own note tokens issued by the vault; they never receive Wildcat market tokens.
+`BRCNoteVault` owns the only direct Wildcat lender position. Investors get note tokens from the vault, never Wildcat market tokens.
 
-`BtcUsdFixingOracle` records the initial and maturity observations. It reads the standard Chainlink BTC/USD proxy and stores each accepted fixing once.
+`BtcUsdFixingOracle` records the initial and maturity observations. It reads the standard Chainlink BTC/USD proxy and stores each accepted fixing once, full stop.
 
-`SingletonFixedTermHooks` keeps the Wildcat side plain. It admits the vault, seals the provider list, prevents pre-maturity closure and term reduction, and freezes APR and reserve ratio before maturity.
+`SingletonFixedTermHooks` keeps the Wildcat side plain. It admits the vault, seals the provider list, blocks early closure and term reduction, and freezes the APR and reserve ratio until maturity.
 
 ```text
 investors
@@ -19,21 +19,21 @@ BRCNoteVault ------ sole lender ------> Wildcat market ------> borrower
 
 ## Boundaries
 
-Wildcat accounts for ordinary USDC debt, lender interest, liquidity and delinquency. It does not know what a BRC is.
+Wildcat accounts for ordinary USDC debt, lender interest, liquidity and delinquency. It has no idea what a BRC is.
 
-The vault accounts for subscriptions, note supply, the market position, the slash, borrower rebate and investor redemptions.
+The vault accounts for subscriptions, note supply, the market position, the slash, the borrower rebate and investor redemptions.
 
-The oracle adapter decides whether a Chainlink round matches the observation rule. It does not custody assets or calculate note redemptions.
+The oracle adapter decides whether a Chainlink round fits the observation rule. It does not hold assets or work out note redemptions.
 
-The canonical Wildcat 4626 wrapper is not used. A pass-through wrapper cannot apply the BRC waterfall, and allowing the vault's market tokens to move creates a route the product does not need. The market therefore sets `transfersDisabled = true`.
+We do not use the canonical Wildcat 4626 wrapper. A pass-through wrapper cannot apply the BRC waterfall, and there is no reason for the vault's market tokens to move. The market sets `transfersDisabled = true`.
 
 ## Trust
 
-One immutable vault is deployed for each series. It has no delegatecall, general executor, market-token approval route or administrative asset sweep.
+Each series gets one immutable vault. It has no delegatecall, general executor, market-token approval route or admin asset sweep.
 
-An upgradeable vault would leave the lender address fixed while allowing its behaviour to change. This design does not use one.
+An upgradeable vault would keep the lender address fixed while letting its behaviour change underneath it, so this design does not use one.
 
-The oracle fallback is delayed and challengeable. No administrator receives an immediate price-setting function.
+The oracle fallback has a delay and a challenge period. Nobody gets an instant admin price setter.
 
 ## Lifecycle
 
@@ -43,5 +43,4 @@ Funding -> Active -> Withdrawing -> Settled -> Redeemable
                     +-------------> Recovery
 ```
 
-Funding may end in cancellation if the minimum raise is missed. Active fixes `S0` and deposits the notional. Withdrawing fixes `ST` and queues the complete Wildcat position. Settled is available only after full performance. Recovery holds partial proceeds without paying a borrower rebate.
-
+Funding can end in cancellation if the minimum raise is missed. Active fixes `S0` and deposits the notional. Withdrawing fixes `ST` and queues the whole Wildcat position. Settled only becomes available after full performance. Recovery holds partial proceeds and pays no borrower rebate.

@@ -38,9 +38,10 @@ The oracle fallback has a delay and a challenge period. Nobody gets an instant a
 ## Lifecycle
 
 ```text
-Funding -> Active -> Withdrawing -> Settled -> Redeemable
-                    |
-                    +-------------> Recovery
+Funding -> Funded -> Active -> Withdrawing -> Redeemable -> Settled
+   |          |          |
+   v          v          +---> Recovery (task 9)
+Cancelled  Cancelled
 ```
 
-The configured vault fixes `S0` during deployment, before funding. Funding can end in cancellation if the minimum raise is missed. Active deposits the notional against that precommitted fixing. Withdrawing fixes `ST` and queues the whole Wildcat position. Settled only becomes available after full performance. Recovery holds partial proceeds and pays no borrower rebate.
+The configured vault fixes `S0` during deployment, before funding. Funding can end in cancellation if the minimum raise is missed, and a funded series can also cancel if activation never succeeds. Active deposits the notional against that precommitted fixing. Withdrawing fixes `ST` and queues the whole Wildcat position. Full performance opens `Redeemable`; `Settled` is terminal and arrives only after the rebate and every note redemption are complete. Task 9 adds recovery for partial proceeds, with no borrower rebate.

@@ -48,7 +48,11 @@ The payoff library spells out every rounding direction. Its accounting checks ma
 
 ### The vault is sanctioned
 
-Wildcat's sanctions path can quarantine the lender position or its withdrawal. The tests and legal terms need to cover that delay; the BRC contracts cannot override the sanctions sentinel.
+Wildcat's sanctions path can quarantine the lender position or its withdrawal. It can also queue the complete position before the vault starts settlement. The vault can adopt that authenticated batch and continue once the assets reach it, but it cannot override or pull assets out of the sanctions escrow.
+
+### The withdrawal expiry wraps
+
+Wildcat stores withdrawal expiries in 32 bits. The vault refuses terms that would run off the end after allowing for the observation window, withdrawal delay and the extra second Wildcat may need on close. It checks again at queue time because a keeper can still be late. Miss that window and the position stays `Active` for recovery; the vault never asks Wildcat to write a wrapped expiry.
 
 ### SphereX blocks a withdrawal
 

@@ -1,0 +1,27 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  foundry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Check dependency pins
+        run: ./script/check-dependencies.sh
+      - name: Check formatting
+        run: forge fmt --check
+      - name: Build
+        run: forge build
+      - name: Test
+        run: FOUNDRY_PROFILE=ci forge test

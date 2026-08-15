@@ -1,0 +1,20 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+solc = "0.8.28"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+fs_permissions = [{ access = "read", path = "./config" }]
+
+[fmt]
+line_length = 100
+tab_width = 2
+bracket_spacing = true
+
+[profile.ci]
+fuzz = { runs = 1_000 }
+invariant = { runs = 256, depth = 32 }

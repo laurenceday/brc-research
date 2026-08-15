@@ -55,8 +55,9 @@ principal slash = floor(N * (K - ST) / K)         when ST <= B and ST < K
 On complete Wildcat performance, the borrower may claim the slash and noteholders receive all
 remaining collected principal plus accrued Wildcat interest. In recovery, the borrower receives
 nothing and every settlement-asset unit collected before finalisation goes to noteholders. The
-lender therefore takes borrower credit risk and BTC downside risk while receiving the fixed
-Wildcat lender yield and no BTC upside.
+lender therefore takes borrower credit risk and BTC downside risk while receiving no BTC upside.
+The hooks freeze the Wildcat APR and reserve ratio only until maturity; the return still depends on
+borrower performance and the settlement or recovery path.
 
 ## Build and test
 

@@ -13,6 +13,8 @@ The borrower rebate is conditional. It only exists after full Wildcat performanc
 - Any account may submit valid oracle evidence and advance permissionless settlement calls.
 - Fallback ratifiers act only after the primary observation path has failed for the agreed period.
 - Chainlink proxy and aggregator administrators may change the underlying feed phase.
+- The Wildcat ArchController's SphereX admin and operator may replace the engine and propagate it to the market.
+- The Wildcat ArchController owner may change a hook template's protocol fee and push it to the active market.
 
 ## Failure cases
 
@@ -47,6 +49,14 @@ The payoff library spells out every rounding direction. Its accounting checks ma
 ### The vault is sanctioned
 
 Wildcat's sanctions path can quarantine the lender position or its withdrawal. The tests and legal terms need to cover that delay; the BRC contracts cannot override the sanctions sentinel.
+
+### SphereX blocks a withdrawal
+
+The Wildcat ArchController's SphereX admin and operator can replace the engine used by a registered market. That engine runs around withdrawal queueing and execution, and can make either call revert. The manifest records the ArchController, admin, operator and engine seen before funding; the vault does not freeze them. A hostile or broken engine can delay the sole lender's withdrawal, and the vault has no local bypass after activation. Watch it for the whole term.
+
+### Protocol fees dilute recovery
+
+The vault checks the fee recipient and protocol fee before activation. After that, the ArchController owner can change the template fee and push it to the market, up to 1,000 bips. Protocol fees add to borrower debt when everything pays out. In default, accrued fees sit ahead of an unpaid lender withdrawal and the recipient can collect them, leaving less for noteholders. The manifest records the starting values, owner, ceiling and mutability. None of that pretends the fee is frozen.
 
 ## Required accounting and state properties
 

@@ -1,2 +1,4 @@
 forge-std/=lib/forge-std/src/
 v2-protocol/=lib/v2-protocol/src/
+openzeppelin/=lib/v2-protocol/lib/openzeppelin-contracts/
+solady/=lib/v2-protocol/lib/solady/src/

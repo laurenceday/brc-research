@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 import { Test } from "forge-std/Test.sol";
-import { BRCNoteVault } from "../src/BRCNoteVault.sol";
+import { ActivationTerms, BRCNoteVault } from "../src/BRCNoteVault.sol";
 import { BRCState } from "../src/BRCSeries.sol";
 import { IERC20Metadata } from "../src/interfaces/IERC20.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
@@ -77,6 +77,18 @@ contract BRCNoteVaultTest is Test {
     assertEq(uint256(second.state()), uint256(BRCState.Funded));
   }
 
+  function testUnconfiguredSuccessfulRaiseCanCancelAndRefund() external {
+    _subscribe(alice, NOTIONAL, alice);
+    vault.finalizeFunding();
+    vault.cancelUnactivated();
+
+    vm.prank(alice);
+    vault.refund();
+    assertEq(uint256(vault.state()), uint256(BRCState.Cancelled));
+    assertEq(vault.totalSupply(), 0);
+    assertEq(asset.balanceOf(address(vault)), 0);
+  }
+
   function testCancelsUnderfundedRaiseAndRefundsCurrentHolders() external {
     _subscribe(alice, 200_000e6, alice);
     _subscribe(bob, 100_000e6, bob);
@@ -138,6 +150,21 @@ contract BRCNoteVaultTest is Test {
     vault.setEligible(alice, false);
     vm.prank(operator);
     vm.expectRevert(abi.encodeWithSelector(BRCNoteVault.IneligibleAccount.selector, alice));
+    vault.transferFrom(alice, bob, 1);
+  }
+
+  function testCanRevokeAllowanceWhileOperatorIsIneligible() external {
+    _subscribe(alice, 100e6, alice);
+    vm.prank(alice);
+    vault.approve(operator, 100e6);
+
+    vault.setEligible(operator, false);
+    vm.prank(alice);
+    vault.approve(operator, 0);
+    vault.setEligible(operator, true);
+
+    vm.prank(operator);
+    vm.expectRevert(BRCNoteVault.InsufficientAllowance.selector);
     vault.transferFrom(alice, bob, 1);
   }
 
@@ -243,7 +270,34 @@ contract BRCNoteVaultTest is Test {
       NOTIONAL,
       MINIMUM_RAISE,
       deadline,
-      restricted
+      restricted,
+      ActivationTerms({
+        market: address(0),
+        borrower: address(0),
+        borrowerPrincipal: address(0),
+        hooksFactory: address(0),
+        hooksTemplate: address(0),
+        providerFactory: address(0),
+        providerFactoryCodeHash: bytes32(0),
+        marketSalt: bytes32(0),
+        providerSalt: bytes32(0),
+        annualInterestBips: 0,
+        reserveRatioBips: 0,
+        delinquencyFeeBips: 0,
+        delinquencyGracePeriod: 0,
+        withdrawalBatchDuration: 0,
+        feeRecipient: address(0),
+        protocolFeeBips: 0,
+        activationDeadline: 0,
+        maturity: 0,
+        btcUsdFeed: address(0),
+        feedDecimals: 0,
+        feedDescriptionHash: bytes32(0),
+        maxInitialAge: 0,
+        maxFutureSkew: 0,
+        barrierBips: 0,
+        maxObservationDelay: 0
+      })
     );
   }
 }

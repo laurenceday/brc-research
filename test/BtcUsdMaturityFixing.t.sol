@@ -104,6 +104,31 @@ contract BtcUsdMaturityFixingTest is Test {
     assertEq(fixing.aggregatorRoundId, 1);
   }
 
+  function testGasRecordsMaturityAfterMaximumProofWalk() external {
+    vm.pauseGasMetering();
+    phaseOne.setRound(1, 90_000e8, maturity - 33, maturity - 33, 1);
+    for (uint80 roundId = 2; roundId < 34; ++roundId) {
+      phaseOne.setRound(
+        roundId, 90_000e8, maturity - (34 - roundId), maturity - (34 - roundId), roundId
+      );
+    }
+    phaseOne.setRound(34, 89_000e8, maturity, maturity, 34);
+    vm.warp(maturity);
+    vm.cool(address(oracle));
+    vm.cool(address(proxy));
+    vm.cool(address(phaseOne));
+
+    vm.resumeGasMetering();
+    uint256 gasBefore = gasleft();
+    oracle.recordMaturityFixing(_round(1, 34), _round(1, 1));
+    uint256 gasUsed = gasBefore - gasleft();
+    vm.pauseGasMetering();
+
+    assertLe(gasUsed, 650_000);
+    assertTrue(oracle.hasMaturityFixing());
+    vm.resumeGasMetering();
+  }
+
   function testRejectsPhaseWithDifferentDecimals() external {
     MockAggregatorV3 phaseTwo = new MockAggregatorV3(18, "BTC / USD");
     phaseOne.setRound(2, 90_000e8, maturity - 1, maturity - 1, 2);

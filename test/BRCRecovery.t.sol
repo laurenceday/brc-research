@@ -159,6 +159,53 @@ contract BRCRecoveryTest is BRCSettlementTest {
     vault.finalizeRecovery();
   }
 
+  function testGasFinalizesRecoveryWithMaximumAdoptedBatches() external {
+    vm.pauseGasMetering();
+    vault.activate();
+    market.borrow(market.borrowableAssets());
+    vm.warp(maturity);
+
+    uint32[] memory adoptedExpiries = new uint32[](8);
+    for (uint256 i; i < adoptedExpiries.length; ++i) {
+      uint256 activeBalance = market.balanceOf(address(vault));
+      vm.prank(address(vault));
+      adoptedExpiries[i] = market.queueWithdrawal(activeBalance / 100);
+      vm.warp(uint256(adoptedExpiries[i]) + 1);
+    }
+
+    uint32 liveExpiry = vault.queueSettlementWithdrawal(adoptedExpiries);
+    if (block.timestamp < vault.recoveryEligibleAt()) vm.warp(vault.recoveryEligibleAt());
+    vault.enterRecovery();
+    uint256 finalizationTime = vault.recoveryWriteOffAt();
+    if (finalizationTime <= liveExpiry) finalizationTime = uint256(liveExpiry) + 1;
+    vm.warp(finalizationTime);
+    vm.cool(address(vault));
+    vm.cool(address(market));
+    vm.cool(address(asset));
+    vm.cool(address(hooks));
+    vm.cool(address(sanctionsSentinel));
+    vm.cool(address(chainalysis));
+    vm.cool(address(archController));
+    vm.cool(address(hooksFactory));
+
+    vm.resumeGasMetering();
+    uint256 gasBefore = gasleft();
+    vault.finalizeRecovery();
+    uint256 gasUsed = gasBefore - gasleft();
+    vm.pauseGasMetering();
+
+    assertLe(gasUsed, 1_500_000);
+    for (uint256 i; i < adoptedExpiries.length; ++i) {
+      assertGt(
+        market.getAccountWithdrawalStatus(address(vault), adoptedExpiries[i])
+        .normalizedAmountWithdrawn,
+        0
+      );
+    }
+    assertEq(uint256(vault.state()), uint256(BRCState.Redeemable));
+    vm.resumeGasMetering();
+  }
+
   function _enterQueuedDefault(bool recordFixing) internal returns (uint32 expiry) {
     vault.activate();
     uint256 borrowed = market.borrowableAssets();

@@ -29,3 +29,5 @@ The example uses the standard Ethereum mainnet Chainlink BTC/USD proxy listed at
 The stack is linear. Review and merge it from the bottom.
 
 Deployment lives in [`docs/deployment-tooling.md`](docs/deployment-tooling.md). Run it once without `--broadcast`, get the printed hashes and addresses signed off, then run the read-only verifier against the record before funding.
+
+The task-11 hand-off is split across the [`review packet`](docs/review-packet.md), [`validation evidence`](docs/validation-evidence.md) and [`operator checklists`](docs/operations-checklists.md). The last of those is the executable version of the narrative [`runbook`](docs/runbook.md).

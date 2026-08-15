@@ -20,6 +20,15 @@ check_git_pin() {
 check_git_pin "v2-protocol" "lib/v2-protocol" "$V2_PROTOCOL_COMMIT"
 check_git_pin "forge-std" "lib/forge-std" "$FORGE_STD_COMMIT"
 
+foundry_version="$(forge --version)"
+if [[ "$foundry_version" != *"Version: $FOUNDRY_VERSION"* \
+  || "$foundry_version" != *"Commit SHA: $FOUNDRY_COMMIT"* ]]; then
+  echo "Foundry: expected $FOUNDRY_VERSION ($FOUNDRY_COMMIT)" >&2
+  echo "$foundry_version" >&2
+  exit 1
+fi
+echo "Foundry: $FOUNDRY_VERSION ($FOUNDRY_COMMIT)"
+
 chainlink_interface="$repo_root/src/interfaces/AggregatorV3Interface.sol"
 chainlink_hash="$(shasum -a 256 "$chainlink_interface" | awk '{print $1}')"
 if [[ "$chainlink_hash" != "$CHAINLINK_AGGREGATOR_V3_SHA256" ]]; then

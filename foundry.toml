@@ -25,4 +25,4 @@ lint_on_build = false
 
 [profile.ci]
 fuzz = { runs = 1_000 }
-invariant = { runs = 256, depth = 32 }
+invariant = { runs = 256, depth = 128 }

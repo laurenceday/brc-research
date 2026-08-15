@@ -79,6 +79,9 @@ contract BRCActivationTest is Test {
   address internal constant FEE_RECIPIENT = address(0);
   uint16 internal constant PROTOCOL_FEE = 0;
   uint16 internal constant BARRIER_BIPS = 6_000;
+  uint256 internal constant RATIFIER_ONE_KEY = 0xA11CE;
+  uint256 internal constant RATIFIER_TWO_KEY = 0xB0B;
+  uint256 internal constant RATIFIER_THREE_KEY = 0xCAFE;
   bytes32 internal constant PROVIDER_SALT = keccak256("brc-provider");
   bytes32 internal constant DESCRIPTION_HASH = keccak256("BTC / USD");
 
@@ -711,9 +714,9 @@ contract BRCActivationTest is Test {
 
   function _fallbackConfig() internal pure returns (BRCFallbackConfig memory config) {
     config.ratifiers = new address[](3);
-    config.ratifiers[0] = address(0xA11CE);
-    config.ratifiers[1] = address(0xB0B);
-    config.ratifiers[2] = address(0xCAFE);
+    config.ratifiers[0] = vm.addr(RATIFIER_ONE_KEY);
+    config.ratifiers[1] = vm.addr(RATIFIER_TWO_KEY);
+    config.ratifiers[2] = vm.addr(RATIFIER_THREE_KEY);
     config.threshold = 2;
     config.waitingPeriod = 1 days;
     config.challengePeriod = 1 days;

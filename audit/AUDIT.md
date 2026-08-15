@@ -103,3 +103,19 @@ block and checked each normal/recovery arrow against the vault state machine.
 Leads not pursued: the material does not price a series, select a counterparty or claim legal,
 accounting, tax, data-rights or suitability conclusions. Those depend on facts absent from the
 research repository and remain explicit discovery questions.
+
+## Step 4, round 2 -- 16 August 2026
+
+This round reviewed the fixed tree at
+`f0336eb0035222a43f5efde071e821591362981d`. The lender read ended with full face at risk, no BTC
+upside and a rebate only after full performance. The borrower read ended with gross Wildcat payment
+before any rebate and zero rebate in recovery. The technical read found those statements consistent
+across all six pages and diagrams.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| -- | -- | -- | No finding. | clean |
+
+Leads not pursued: Mermaid rendering proves syntax, not visual quality in every downstream deck or
+client. Extracted diagrams must retain their captions and prototype boundary. No Solidity changed,
+so a new Solidity audit or fuzz harness was not applicable to this step.

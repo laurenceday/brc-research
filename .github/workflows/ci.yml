@@ -23,6 +23,8 @@ jobs:
         run: ./script/check-markdown.sh
       - name: Check published payoff examples
         run: ./script/check-primer-examples.sh
+      - name: Render Mermaid diagrams
+        run: ./script/check-mermaid.sh
       - name: Check formatting
         run: forge fmt --check
       - name: Build

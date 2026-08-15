@@ -84,6 +84,7 @@ contract BRCActivationTest is Test {
   WildcatArchController internal archController;
   WildcatBorrowerIdentityRegistry internal borrowerRegistry;
   WildcatSanctionsSentinel internal sanctionsSentinel;
+  MockChainalysis internal chainalysis;
   Wildcat4626WrapperFactory internal wrapperFactory;
   HooksFactory internal hooksFactory;
   SingletonRoleProviderFactory internal providerFactory;
@@ -112,8 +113,8 @@ contract BRCActivationTest is Test {
 
     archController = new WildcatArchController();
     borrowerRegistry = new WildcatBorrowerIdentityRegistry(address(archController));
-    sanctionsSentinel =
-      new WildcatSanctionsSentinel(address(archController), address(new MockChainalysis()));
+    chainalysis = new MockChainalysis();
+    sanctionsSentinel = new WildcatSanctionsSentinel(address(archController), address(chainalysis));
     wrapperFactory = new Wildcat4626WrapperFactory(address(archController), address(0));
     address marketInitCode = LibStoredInitCode.deployInitCode(type(WildcatMarket).creationCode);
     hooksFactory = new HooksFactory(
@@ -361,6 +362,23 @@ contract BRCActivationTest is Test {
       address(this),
       "Wildcard market salt",
       "WILD",
+      NOTIONAL,
+      NOTIONAL,
+      fundingDeadline,
+      true,
+      terms
+    );
+  }
+
+  function testConstructorReservesRoomForMaturitySettlement() external {
+    ActivationTerms memory terms = _activationTerms(address(market));
+    terms.maturity = type(uint32).max - terms.maxObservationDelay - terms.withdrawalBatchDuration;
+    vm.expectRevert(BRCNoteVault.InvalidTerms.selector);
+    new BRCNoteVault(
+      IERC20Metadata(address(asset)),
+      address(this),
+      "Unsafe settlement horizon",
+      "LATE",
       NOTIONAL,
       NOTIONAL,
       fundingDeadline,

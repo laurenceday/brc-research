@@ -6,7 +6,7 @@
 2. Check the approved hooks template, hooks factory and singleton role-provider factory addresses. Record the Wildcat ArchController owner, SphereX admin, operator and current engine; these are trust inputs, and the engine can change later. Record the template's fee recipient and protocol fee as well.
 3. Check that Wildcat accepts the settlement asset, then record its address and decimals.
 4. Check the standard Ethereum mainnet Chainlink BTC/USD proxy, `description()` and `decimals()` against Chainlink's current directory.
-5. Freeze the series manifest, legal terms, note transfer policy, maturity, oracle delay and fallback procedure.
+5. Freeze the series manifest, legal terms, note transfer policy, maturity, oracle delay and fallback procedure. Check that the maturity, maximum observation delay, withdrawal duration and the extra second Wildcat may need when closing a batch all fit below its 32-bit timestamp limit.
 6. Run unit, fuzz, stateful accounting-property and mainnet-fork tests against the pinned commits.
 
 ## Deploy the series
@@ -64,11 +64,11 @@ Keep an eye on the Chainlink feed, proxy phase, deprecation notices, market liqu
 
 1. Submit the first valid BTC/USD round at or after maturity together with the evidence required to prove its position in the proxy history.
 2. Store `ST` once.
-3. Queue the vault's complete market balance for withdrawal.
+3. Queue the vault's complete market balance before the safe queue deadline. If `nukeFromOrbit` got there first and queued the sanctioned vault, supply that authenticated batch expiry and adopt it.
 4. Have the borrower fund and close the Wildcat market.
 5. Execute the withdrawal after its batch expires.
 6. Confirm that the market is closed and that the vault collected its complete claim.
 7. Calculate the slash and transfer the borrower rebate.
 8. Open pro-rata note redemption against the remaining USDC.
 
-If the market does not perform in full, enter recovery. Do not pay the borrower rebate.
+If the market does not perform in full, or the safe queue deadline has passed, enter recovery. Do not pay the borrower rebate.

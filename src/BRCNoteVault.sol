@@ -2,6 +2,8 @@
 pragma solidity ^0.8.28;
 
 import { BRCState } from "./BRCSeries.sol";
+import { BRCSeriesTerms } from "./BRCSeries.sol";
+import { BRCMath } from "./BRCMath.sol";
 import { BtcUsdFixingOracle } from "./BtcUsdFixingOracle.sol";
 import { AggregatorV3Interface } from "./interfaces/AggregatorV3Interface.sol";
 import { IERC20, IERC20Metadata } from "./interfaces/IERC20.sol";
@@ -13,6 +15,7 @@ import {
 import { ISingletonRoleProvider } from "v2-protocol/providers/ISingletonRoleProvider.sol";
 import { HooksConfig, LibHooksConfig } from "v2-protocol/types/HooksConfig.sol";
 import { MarketState } from "v2-protocol/libraries/MarketState.sol";
+import { AccountWithdrawalStatus, WithdrawalBatch } from "v2-protocol/libraries/Withdrawal.sol";
 import { RoleProvider, LibRoleProvider } from "v2-protocol/types/RoleProvider.sol";
 
 using LibHooksConfig for HooksConfig;
@@ -90,6 +93,17 @@ interface IWildcatActivationMarket {
   function scaleFactor() external view returns (uint256);
 
   function deposit(uint256 amount) external;
+
+  function queueFullWithdrawal() external returns (uint32 expiry);
+
+  function executeWithdrawal(address account, uint32 expiry) external returns (uint256 amount);
+
+  function getWithdrawalBatch(uint32 expiry) external view returns (WithdrawalBatch memory);
+
+  function getAccountWithdrawalStatus(address account, uint32 expiry)
+    external
+    view
+    returns (AccountWithdrawalStatus memory);
 }
 
 contract BRCNoteVault {
@@ -114,6 +128,11 @@ contract BRCNoteVault {
   error IncompleteRaise();
   error ActivationWindowClosed();
   error ActivationStillOpen();
+  error MaturityFixingMissing();
+  error SettlementQueueWindowClosed();
+  error WithdrawalNotReady();
+  error IncompleteMarketPerformance();
+  error RebateAlreadyClaimed();
 
   string public name;
   string public symbol;
@@ -147,6 +166,15 @@ contract BRCNoteVault {
 
   BRCState public state;
   uint256 public totalSupply;
+  uint104 public activatedScaledAmount;
+  uint32[] public settlementBatchExpiries;
+  mapping(uint32 => bool) public isSettlementBatch;
+  uint128 public wildcatProceeds;
+  uint128 public borrowerRebate;
+  uint128 public noteholderReserve;
+  uint128 public redeemedAssets;
+  uint256 public settlementBaselineBalance;
+  bool public borrowerRebateClaimed;
   bool private locked;
 
   mapping(address => uint256) public balanceOf;
@@ -171,6 +199,22 @@ contract BRCNoteVault {
     uint128 fixingPrice,
     uint256 fixingUpdatedAt,
     uint256 depositedAmount
+  );
+  event SettlementWithdrawalQueued(uint32 indexed expiry, uint104 scaledAmount, bool adopted);
+  event SettlementWithdrawalExecuted(uint32 indexed expiry, uint256 amount);
+  event SettlementFinalized(
+    uint128 wildcatProceeds,
+    uint128 borrowerRebate,
+    uint128 noteholderReserve,
+    uint128 maturityPrice
+  );
+  event BorrowerRebateClaimed(address indexed recipient, uint256 amount);
+  event Redeemed(
+    address indexed owner,
+    address indexed recipient,
+    uint256 noteAmount,
+    uint256 assetAmount,
+    uint256 remainingNotes
   );
 
   modifier nonReentrant() {
@@ -244,7 +288,8 @@ contract BRCNoteVault {
           || address(bytes20(activationTerms_.marketSalt)) != activationTerms_.borrower
           || activationTerms_.activationDeadline <= fundingDeadline_
           || activationTerms_.maturity <= activationTerms_.activationDeadline
-          || activationTerms_.maturity > type(uint32).max
+          || uint256(activationTerms_.maturity) + activationTerms_.maxObservationDelay
+              + activationTerms_.withdrawalBatchDuration + 1 > type(uint32).max
           || IHooksFactoryView(activationTerms_.hooksFactory)
               .computeMarketAddress(activationTerms_.marketSalt) != activationTerms_.market
       ) revert InvalidTerms();
@@ -299,6 +344,8 @@ contract BRCNoteVault {
         || settlementAsset.allowance(address(this), expectedMarket) != 0
     ) revert AssetBalanceMismatch();
 
+    activatedScaledAmount = uint104(expectedScaledAmount);
+    settlementBaselineBalance = settlementAsset.balanceOf(address(this));
     state = BRCState.Active;
     emit Activated(
       expectedMarket,
@@ -321,6 +368,188 @@ contract BRCNoteVault {
 
     state = BRCState.Cancelled;
     emit FundingCancelled(totalSupply);
+  }
+
+  function queueSettlementWithdrawal(uint32[] calldata preexistingExpiries)
+    external
+    nonReentrant
+    returns (uint32 expiry)
+  {
+    if (state != BRCState.Active) revert WrongState();
+    if (!fixingOracle.hasMaturityFixing()) revert MaturityFixingMissing();
+    if (preexistingExpiries.length > 8) revert IncompleteMarketPerformance();
+
+    IWildcatActivationMarket market = IWildcatActivationMarket(expectedMarket);
+    uint256 totalQueuedScaled;
+    for (uint256 i; i < preexistingExpiries.length; i++) {
+      uint32 adoptedExpiry = preexistingExpiries[i];
+      if (adoptedExpiry == 0) revert IncompleteMarketPerformance();
+      for (uint256 j; j < i; j++) {
+        if (preexistingExpiries[j] == adoptedExpiry) revert IncompleteMarketPerformance();
+      }
+      AccountWithdrawalStatus memory adoptedStatus =
+        market.getAccountWithdrawalStatus(address(this), adoptedExpiry);
+      if (adoptedStatus.scaledAmount == 0) revert IncompleteMarketPerformance();
+      totalQueuedScaled += adoptedStatus.scaledAmount;
+      isSettlementBatch[adoptedExpiry] = true;
+      settlementBatchExpiries.push(adoptedExpiry);
+      emit SettlementWithdrawalQueued(adoptedExpiry, adoptedStatus.scaledAmount, true);
+    }
+
+    uint256 liveScaledAmount = market.scaledBalanceOf(address(this));
+    if (liveScaledAmount > 0) {
+      if (block.timestamp + uint256(expectedWithdrawalBatchDuration) + 1 > type(uint32).max) {
+        revert SettlementQueueWindowClosed();
+      }
+      if (liveScaledAmount > type(uint104).max) revert IncompleteMarketPerformance();
+      expiry = market.queueFullWithdrawal();
+      if (isSettlementBatch[expiry]) revert IncompleteMarketPerformance();
+      AccountWithdrawalStatus memory queuedStatus =
+        market.getAccountWithdrawalStatus(address(this), expiry);
+      if (queuedStatus.scaledAmount != liveScaledAmount) {
+        revert IncompleteMarketPerformance();
+      }
+      totalQueuedScaled += liveScaledAmount;
+      isSettlementBatch[expiry] = true;
+      settlementBatchExpiries.push(expiry);
+      emit SettlementWithdrawalQueued(expiry, uint104(liveScaledAmount), false);
+    }
+    if (
+      totalQueuedScaled != activatedScaledAmount || market.scaledBalanceOf(address(this)) != 0
+        || market.balanceOf(address(this)) != 0
+    ) revert IncompleteMarketPerformance();
+
+    state = BRCState.Withdrawing;
+  }
+
+  function executeSettlementWithdrawal(uint32 expiry)
+    external
+    nonReentrant
+    returns (uint256 amount)
+  {
+    if (state != BRCState.Withdrawing) revert WrongState();
+    if (!isSettlementBatch[expiry]) revert IncompleteMarketPerformance();
+    IWildcatActivationMarket market = IWildcatActivationMarket(expectedMarket);
+    WithdrawalBatch memory batch = market.getWithdrawalBatch(expiry);
+    AccountWithdrawalStatus memory status = market.getAccountWithdrawalStatus(address(this), expiry);
+    if (
+      status.scaledAmount != batch.scaledTotalAmount
+        || status.normalizedAmountWithdrawn == batch.normalizedAmountPaid
+    ) revert WithdrawalNotReady();
+
+    uint256 balanceBefore = settlementAsset.balanceOf(address(this));
+    amount = market.executeWithdrawal(address(this), expiry);
+    if (settlementAsset.balanceOf(address(this)) != balanceBefore + amount) {
+      revert AssetBalanceMismatch();
+    }
+    emit SettlementWithdrawalExecuted(expiry, amount);
+  }
+
+  function finalizeSettlement() external {
+    if (state != BRCState.Withdrawing) revert WrongState();
+    IWildcatActivationMarket market = IWildcatActivationMarket(expectedMarket);
+    MarketState memory marketState = market.previousState();
+    if (!marketState.isClosed || market.totalSupply() != 0) {
+      revert IncompleteMarketPerformance();
+    }
+
+    uint256 totalScaled;
+    uint256 totalProceeds;
+    uint256 batchCount = settlementBatchExpiries.length;
+    if (batchCount == 0) revert IncompleteMarketPerformance();
+    for (uint256 i; i < batchCount; i++) {
+      uint32 expiry = settlementBatchExpiries[i];
+      WithdrawalBatch memory batch = market.getWithdrawalBatch(expiry);
+      AccountWithdrawalStatus memory status =
+        market.getAccountWithdrawalStatus(address(this), expiry);
+      if (
+        batch.scaledTotalAmount == 0 || batch.scaledAmountBurned != batch.scaledTotalAmount
+          || status.scaledAmount != batch.scaledTotalAmount
+          || status.normalizedAmountWithdrawn != batch.normalizedAmountPaid
+      ) revert IncompleteMarketPerformance();
+      totalScaled += status.scaledAmount;
+      totalProceeds += status.normalizedAmountWithdrawn;
+    }
+    if (totalScaled != activatedScaledAmount || totalProceeds > type(uint128).max) {
+      revert IncompleteMarketPerformance();
+    }
+
+    uint128 proceeds = uint128(totalProceeds);
+    if (settlementAsset.balanceOf(address(this)) < settlementBaselineBalance + proceeds) {
+      revert IncompleteMarketPerformance();
+    }
+
+    (,,, uint128 maturityPrice,) = fixingOracle.maturityFixing();
+    BRCSeriesTerms memory terms = BRCSeriesTerms({
+      notional: notional,
+      strike: fixingOracle.strike(),
+      barrier: fixingOracle.barrier(),
+      maturity: maturity,
+      settlementAssetDecimals: decimals
+    });
+    uint128 rebate = BRCMath.principalSlash(terms, maturityPrice);
+    if (rebate > proceeds) revert IncompleteMarketPerformance();
+
+    wildcatProceeds = proceeds;
+    borrowerRebate = rebate;
+    noteholderReserve = BRCMath.noteholderPool(proceeds, rebate);
+    borrowerRebateClaimed = rebate == 0;
+    state = BRCState.Redeemable;
+    emit SettlementFinalized(proceeds, rebate, noteholderReserve, maturityPrice);
+  }
+
+  function claimBorrowerRebate() external nonReentrant returns (uint256 amount) {
+    if (state != BRCState.Redeemable) revert WrongState();
+    if (borrowerRebateClaimed) revert RebateAlreadyClaimed();
+    borrowerRebateClaimed = true;
+    amount = borrowerRebate;
+
+    uint256 vaultBalanceBefore = settlementAsset.balanceOf(address(this));
+    uint256 recipientBalanceBefore = settlementAsset.balanceOf(expectedBorrowerPrincipal);
+    _safeTransfer(address(settlementAsset), expectedBorrowerPrincipal, amount);
+    if (
+      settlementAsset.balanceOf(address(this)) != vaultBalanceBefore - amount
+        || settlementAsset.balanceOf(expectedBorrowerPrincipal) != recipientBalanceBefore + amount
+    ) revert AssetBalanceMismatch();
+
+    emit BorrowerRebateClaimed(expectedBorrowerPrincipal, amount);
+    _finishSettlementIfComplete();
+  }
+
+  function redeem(uint256 noteAmount, address recipient)
+    external
+    nonReentrant
+    returns (uint256 assetAmount)
+  {
+    if (state != BRCState.Redeemable) revert WrongState();
+    if (noteAmount == 0) revert ZeroAmount();
+    if (recipient == address(0)) revert ZeroAddress();
+    uint256 ownerBalance = balanceOf[msg.sender];
+    if (ownerBalance < noteAmount) revert InsufficientBalance();
+
+    uint256 remainingReserve = uint256(noteholderReserve) - redeemedAssets;
+    if (noteAmount == totalSupply) {
+      assetAmount = remainingReserve;
+    } else {
+      assetAmount = uint256(noteholderReserve) * noteAmount / notional;
+    }
+    if (assetAmount > remainingReserve) revert AssetBalanceMismatch();
+
+    balanceOf[msg.sender] = ownerBalance - noteAmount;
+    totalSupply -= noteAmount;
+    redeemedAssets += uint128(assetAmount);
+    emit Transfer(msg.sender, address(0), noteAmount);
+
+    uint256 vaultBalanceBefore = settlementAsset.balanceOf(address(this));
+    uint256 recipientBalanceBefore = settlementAsset.balanceOf(recipient);
+    _safeTransfer(address(settlementAsset), recipient, assetAmount);
+    if (
+      settlementAsset.balanceOf(address(this)) != vaultBalanceBefore - assetAmount
+        || settlementAsset.balanceOf(recipient) != recipientBalanceBefore + assetAmount
+    ) revert AssetBalanceMismatch();
+
+    emit Redeemed(msg.sender, recipient, noteAmount, assetAmount, totalSupply);
+    _finishSettlementIfComplete();
   }
 
   function setEligible(address account, bool eligible) external {
@@ -492,6 +721,10 @@ contract BRCNoteVault {
         || !hookedMarket.transfersDisabled || hookedMarket.fixedTermEndTime != maturity
         || hookedMarket.allowClosureBeforeTerm || hookedMarket.allowTermReduction
     ) revert ActivationPolicyMismatch();
+  }
+
+  function _finishSettlementIfComplete() internal {
+    if (totalSupply == 0 && borrowerRebateClaimed) state = BRCState.Settled;
   }
 
   function _transfer(address sender, address recipient, uint256 amount) internal {

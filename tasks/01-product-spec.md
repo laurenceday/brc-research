@@ -1,23 +1,30 @@
 # Task 01: fix the product specification
 
-This PR pins down what we're building before the contracts make it annoying to change.
+Status: implemented and merged. This page records the first step in the prototype stack. The current repository code and the pinned `v2-protocol` revision are the working baseline.
 
-## Work
+## What shipped
 
-- Write the example commercial terms and exact integer formulae.
-- Split Wildcat debt accounting from the vault's BTC option and note accounting.
-- Fix the European observation rule and oracle-failure behaviour.
-- Fix the normal and default waterfalls.
-- Record the trust assumptions, sanctions behaviour and deployment sequence.
-- Name the points that still require legal, tax, distribution or data-licensing advice.
+This step fixed the product before contract work began:
 
-## We're done when
+- a 90-day, USDC-denominated example note linked to BTC/USD;
+- one vault as the sole lender in a fixed-term Wildcat market;
+- one note base unit for each settlement-asset base unit subscribed;
+- a European barrier observed once at maturity;
+- `K = S0`, `B = 60% × S0` and a breach when `ST <= B`;
+- integer rounding towards zero in the principal-slash calculation;
+- a normal waterfall that pays the borrower rebate only after complete Wildcat performance;
+- a recovery waterfall that reserves every recovered asset for noteholders;
+- a fixed Chainlink proxy with a delayed ratifier fallback if the primary proof remains unavailable; and
+- the legal, tax, distribution, sanctions and data-licensing questions that code cannot settle.
 
-- Barrier equality and rounding have one answer.
-- `S0` and `ST` each have an onchain selection rule.
-- The borrower rebate is unavailable during default recovery.
-- Every later task can refer to these documents without inventing another product rule.
+The specification also split responsibilities cleanly. Wildcat accounts for debt, interest, liquidity and delinquency. The BRC vault accounts for subscriptions, note ownership, the BTC-linked rebate and note redemption.
 
-## Not in this PR
+## Evidence
 
-No Solidity, deployment scripts or production claim here. Upstream v2-protocol PR #124 is still a separate prerequisite.
+The implemented terms live in `docs/product-terms.md`. `docs/architecture.md`, `docs/runbook.md` and `docs/threat-model.md` carry the same observation rule, waterfall and trust assumptions into the technical and operational material.
+
+Later contract tests fix the boundary cases first stated here: barrier equality, rounding, one-shot `S0` and `ST`, and the absence of a borrower rebate in recovery.
+
+## Boundary of this step
+
+Task 01 shipped documents only. It did not add Solidity or deployment tooling, and it made no production-readiness claim. The singleton fixed-term market design remained dependent on `wildcat-finance/v2-protocol#124`; the repository now pins the exact reviewed commit used by the prototype.

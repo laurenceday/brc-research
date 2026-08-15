@@ -1,49 +1,31 @@
 # Task 03: implement BRC payoff mathematics
 
-## Aim
+Status: implemented and merged. This step added the series types and pure arithmetic used to describe the cash-settled payoff.
 
-Put the series terms and cash-settlement arithmetic in a pure library before state, tokens or oracle calls make the thing harder to reason about.
+## What shipped
 
-## Terms
+`BRCSeriesTerms` stores notional, strike, barrier, maturity and settlement-asset decimals. `BRCMath` rejects zero notional, zero strike, zero maturity, a barrier above strike and settlement assets with more than 18 decimals.
 
-Add a `BRCSeriesTerms` type with the notional, strike, barrier, maturity and settlement-asset precision. Reject zero notional, zero strike, a barrier above the strike, and values the later accounting cannot represent safely.
-
-For the example series, `K = S0` and `B = 60% × S0`. At maturity:
+For the example series:
 
 ```text
 breached = ST <= B
-slash = breached ? floor(N × (K - ST) / K) : 0
-borrowerRebate = min(slash, recoveredPrincipal)
+slash = breached && ST < K ? floor(N × (K - ST) / K) : 0
 noteholderPool = collectedAssets - borrowerRebate
 ```
 
-If a future series somehow permits `ST > K` while breached under a different observation convention, clamp the slash at zero rather than underflowing. Use full-precision multiplication and say which way every division rounds.
+The multiplication is safe in `uint256` because both factors are at most `uint128`. Division rounds down. A price at or above strike produces no slash even if another observation convention could otherwise describe it as breached.
 
-## Work
+The library contains helpers for barrier derivation, breach detection, principal slash, a capped borrower rebate, noteholder-pool accounting and pro-rata redemption. The live vault does not call the capped `borrowerRebate` helper. In normal settlement it calculates the full `principalSlash` and requires authenticated Wildcat proceeds to cover it; in recovery it sets the rebate to zero. The helper remains a tested arithmetic primitive rather than the live settlement route.
 
-- Add pure functions for barrier derivation, breach detection, principal slash, borrower rebate, noteholder pool and pro-rata note redemption.
-- Keep principal separate from accrued interest. The BTC put may reduce face value; it cannot reduce the contractual coupon or other assets collected above principal.
-- Define the settlement states used by later contracts without adding transition code.
-- Add custom errors for malformed terms and impossible accounting inputs.
-- Write down the units at every external edge: feed decimals, settlement-asset decimals and note-token decimals.
+`BRCState` also established the lifecycle labels later used by the vault.
 
-## Things the tests need to prove
+## Evidence
 
-- `slash <= notional` for every accepted input.
-- Lower `ST` cannot reduce the slash after the barrier has been breached.
-- No breach produces a zero slash.
-- Collected interest is never included in the borrower rebate.
-- `noteholderPool + borrowerRebate == collectedAssets`.
-- Sum of redemptions cannot exceed the reserved noteholder pool, regardless of redemption order.
+`test/BRCMath.t.sol` covers both sides of the barrier, equality, zero price, strike and higher prices, odd-value rounding and malformed terms. Its fuzz tests compare the slash with an independent reference calculation, check monotonicity below the barrier and prove that redemptions cannot exceed the pool.
 
-## Tests to add
+`BRCSystemPayoffDifferentialTest` later checks the same payoff against exact rational quotient bounds over fuzzed full-width inputs.
 
-- One unit test on each side of the barrier and exactly at the barrier.
-- `ST` at zero, at strike and above strike.
-- Odd notionals and prices that expose rounding.
-- Fuzz tests over all accepted term combinations.
-- Differential tests against a simple high-precision reference implementation.
+## Boundary of this step
 
-## Not in this task
-
-This branch does not issue notes, read Chainlink, deposit in Wildcat or transfer a borrower rebate. It works out the amounts; later branches decide when any of them can move.
+Task 03 added no state transitions, note token, Chainlink read, Wildcat deposit or asset transfer. Later tasks decide when the arithmetic can be used and which party receives each amount.

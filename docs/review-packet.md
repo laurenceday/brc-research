@@ -1,6 +1,7 @@
 # BRC external review packet
 
-Status: draft review material for a research prototype, prepared 15 August 2026.
+Status: draft review material for a research prototype, reconciled with the integrated repository on
+16 August 2026.
 
 This packet defines the review target and records the evidence available in the repository. It is
 not an audit report, a legal opinion or an offer document. No external security audit, legal review,
@@ -8,17 +9,18 @@ mainnet deployment or independent operational rehearsal has been completed.
 
 ## Review baseline and dependency pins
 
-The application-contract baseline is
-`efb880e3d79ba12709d68c850b9321eeb19d7cfb` (`feat: add reproducible BRC deployment tooling`).
-The branch used to prepare this packet starts at
-`3ce21b50fa1be553e0b12c8a9c870145b97444f5` (`add security validation and operations task`). A
-release commit has not been selected. Each deployment manifest must replace
+The production-contract baseline is
+`efb880e3d79ba12709d68c850b9321eeb19d7cfb` (`feat: add reproducible BRC deployment tooling`). The
+integrated documentation and test baseline before this reconciliation is
+`9b97787927ee2f9fab2907a9d3762862133fd5cd`. A release commit has not been selected. Each deployment
+manifest must replace
 `SET_TO_REVIEWED_COMMIT` with the release commit reviewed by the borrower, investors and external
 auditor.
 
 | Component | Pin or identity | Review consequence |
 | --- | --- | --- |
 | BRC application contracts | `efb880e3d79ba12709d68c850b9321eeb19d7cfb` | Exact production-code baseline for this packet |
+| Integrated repository | `9b97787927ee2f9fab2907a9d3762862133fd5cd` | Last merged documentation, tests and operations baseline before this reconciliation |
 | Wildcat v2 protocol | `99bb85840a77a56fa5f64504a60ec126b6047cf5` | Submodule commit containing the market, factories, fixed-term hook, provider, sanctions and SphereX code |
 | forge-std | `467ffd422ca01fed5797a4c766a1e4e3a5327902` | Test and script dependency; not deployed as series logic |
 | Chainlink contracts source reference | `f82d1ac09fc5d3190600d308be99a4a509854686` | Provenance recorded for the locally copied interface |
@@ -79,7 +81,7 @@ stateDiagram-v2
   Funded --> Cancelled: activation deadline passes
   Active --> Withdrawing: queue complete position at or after maturity
   Withdrawing --> Redeemable: full Wildcat performance and valid ST
-  Withdrawing --> Recovery: grace period ends with unpaid market supply
+  Withdrawing --> Recovery: recovery delay ends with unpaid market supply
   Recovery --> Redeemable: write-off time and all batches expired
   Redeemable --> Settled: all notes redeemed and rebate resolved
   Cancelled --> Cancelled: holders claim refunds
@@ -166,8 +168,9 @@ H = P - R
 
 ### Recovery
 
-- Recovery becomes available only after the configured grace period, from `Withdrawing`, while the
-  Wildcat market still has unpaid lender supply.
+- Recovery becomes available only after the configured `recoveryDelay`, from `Withdrawing`, while
+  the Wildcat market still has unpaid lender supply. This is separate from Wildcat's
+  `delinquencyGracePeriod`.
 - At or after write-off eligibility, every recorded batch must have expired. Finalisation first
   executes any amount then withdrawable and sets `P` to the authenticated amount withdrawn.
 - Recovery fixes `R = 0` and `H = P`. A later Wildcat payment or token donation is outside the note

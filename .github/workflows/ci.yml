@@ -19,6 +19,8 @@ jobs:
           version: v1.7.1
       - name: Check dependency pins
         run: ./script/check-dependencies.sh
+      - name: Check authored Markdown
+        run: ./script/check-markdown.sh
       - name: Check formatting
         run: forge fmt --check
       - name: Build

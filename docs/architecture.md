@@ -1,10 +1,15 @@
 # Architecture
 
+Status: current implementation overview for the research prototype at the integrated `main`
+baseline of 16 August 2026. The exact dependency commits remain authoritative.
+
 ## Contracts
 
 `BRCNoteVault` owns the only direct Wildcat lender position. Investors get note tokens from the vault, never Wildcat market tokens.
 
-`BtcUsdFixingOracle` records the initial and maturity observations. It reads the standard Chainlink BTC/USD proxy. If that route is still stuck after the fixed delay, it also runs the immutable ratifier proposal, challenge and signature process.
+`BtcUsdFixingOracle` records the initial and maturity observations. It reads the configured Chainlink
+BTC/USD AggregatorV3 proxy. If that route remains unavailable after the fixed delays, it also runs
+the immutable ratifier proposal, challenge and signature process.
 
 `SingletonFixedTermHooks` keeps the Wildcat side plain. It admits the vault, seals the provider list, blocks early closure and term reduction, and freezes the APR and reserve ratio until maturity.
 
@@ -19,13 +24,19 @@ BRCNoteVault ------ sole lender ------> Wildcat market ------> borrower
 
 ## Boundaries
 
-Wildcat accounts for ordinary USDC debt, lender interest, liquidity and delinquency. It has no idea what a BRC is.
+Wildcat accounts for ordinary settlement-asset debt, lender interest, liquidity and delinquency. It
+has no idea what a BRC is. The example manifest uses USDC, but the contract checks the configured
+ERC-20 rather than hard-coding USDC.
 
-The vault accounts for subscriptions, note supply, the market position, the slash, the borrower rebate and investor redemptions.
+The vault accounts for subscriptions, its ERC-20-like note balances, the market position, the slash,
+the borrower rebate and investor redemptions. It does not implement permit or delegated redemption.
 
 The oracle adapter decides whether a Chainlink round fits the observation rule. It does not hold assets or work out note redemptions.
 
-We do not use the canonical Wildcat 4626 wrapper. A pass-through wrapper cannot apply the BRC waterfall, and there is no reason for the vault's market tokens to move. The market sets `transfersDisabled = true`.
+We do not use the canonical Wildcat 4626 wrapper. A pass-through wrapper cannot apply the BRC
+waterfall, and there is no reason for the vault's market tokens to move. The market sets
+`transfersDisabled = true`. Fixed-term queue-hook dispatch remains enabled, while the separate
+`withdrawalRequiresAccess` policy is false.
 
 ## Trust
 
@@ -51,4 +62,11 @@ Active -- at maturity --> Withdrawing -- unpaid after grace --> Recovery
 
 The configured vault fixes `S0` during deployment, before funding. Funding can end in cancellation if the minimum raise is missed, and a funded series can also cancel if activation never succeeds. Active deposits the notional against that precommitted fixing. At maturity, `Withdrawing` queues the whole Wildcat position while `ST` may still be pending. Full performance plus a valid `ST` opens `Redeemable`; `Settled` is terminal and arrives only after the rebate and every note redemption are complete.
 
-The vault may queue the complete position from maturity without waiting for `ST`. Once the recovery grace period ends, `Withdrawing` can move to `Recovery` only while the queued claim remains partly unpaid. A fully paid claim stays on normal settlement, which does not depend on the borrower formally closing an empty market. Note redemption stays shut while recoveries arrive. After the fixed write-off eligibility time and batch expiry, finalisation pulls every amount then withdrawable, reserves the result for noteholders, sets the borrower rebate to zero and opens `Redeemable`. Anything arriving after finalisation is outside the pool.
+The vault may queue the complete position from maturity without waiting for `ST`. Once the separate
+contractual `recoveryDelay` ends, `Withdrawing` can move to `Recovery` only while the queued claim
+remains partly unpaid. This is not Wildcat's `delinquencyGracePeriod`. A fully paid claim stays on
+normal settlement, which does not depend on the borrower formally closing an empty market. Note
+redemption stays shut while recoveries arrive. After the fixed write-off eligibility time and batch
+expiry, finalisation pulls every amount then withdrawable, reserves the result for noteholders, sets
+the borrower rebate to zero and opens `Redeemable`. Anything arriving after finalisation is outside
+the pool.

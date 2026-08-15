@@ -1,66 +1,37 @@
 # Task 07: bind and activate the Wildcat market
 
-## What this does
+Status: implemented and merged. This step made the funded vault the only direct lender in a market deployed through `SingletonFixedTermHooks`.
 
-The funded vault becomes the only direct lender in a market deployed through `SingletonFixedTermHooks`. The USDC stays put until the vault has checked the live market against the series terms.
+## Upstream baseline
 
-## Upstream pin
+The implementation uses `v2-protocol` commit `99bb85840a77a56fa5f64504a60ec126b6047cf5` from PR 124. The repository, manifest and dependency check pin the commit rather than a branch name.
 
-This branch uses reviewed v2-protocol commit `99bb85840a77a56fa5f64504a60ec126b6047cf5`, from PR 124. The commit goes in the manifest; a moving branch name does not.
+## What shipped
 
-## Market acceptance checks
+Before moving settlement assets, `activate()` checks:
 
-Before it approves or deposits a single unit, `activate()` checks:
+- the constructor-bound market address and factory calculation;
+- settlement asset, operational borrower, registered borrower principal and empty pending-borrower slot;
+- notional cap, APR, reserve ratio, delinquency fee, delinquency grace period and withdrawal-batch duration;
+- fee recipient and activation-time protocol fee;
+- the `SingletonFixedTermHooks` identity and administrator;
+- a sealed provider configuration with one pull provider, no push provider and a zero TTL;
+- the singleton provider, its factory code hash and its calculation with the vault as lender;
+- deposit, transfer, queue-withdrawal, close-market and APR/reserve hook dispatch;
+- deposit and transfer access, disabled market-token transfers and no withdrawal credential requirement;
+- `fixedTermEndTime == maturity`; and
+- disabled early closure and term reduction.
 
-- the market address equals the constructor-bound expected address;
-- the settlement asset, operational borrower, registered borrower principal, empty pending-borrower slot, notional cap, APR, reserve ratio, delinquency fee, delinquency grace period and withdrawal-batch duration match the manifest;
-- the fee recipient and activation-time protocol fee match the manifest;
-- the hook instance identifies as `SingletonFixedTermHooks` from the pinned implementation;
-- provider configuration is sealed;
-- there is exactly one pull provider, no existing or push provider, and its TTL is zero;
-- the singleton provider and factory calculation bind the vault as lender;
-- the provider factory runtime matches the artifact hash recorded in the manifest;
-- deposit and transfer dispatch are enabled;
-- the raw queue-withdrawal access flag is false;
-- `fixedTermEndTime` equals note maturity;
-- `allowClosureBeforeTerm` and `allowTermReduction` are false;
-- market-token transfers are disabled for this series; and
-- the stored fixed-term policy prevents APR or reserve-ratio changes before maturity.
+The two withdrawal flags have different jobs. `HooksConfig.useOnQueueWithdrawal()` is true so the fixed-term hook receives the call and can enforce maturity. `HookedMarket.withdrawalRequiresAccess` is false so the vault's exit is not separately credential-gated.
 
-PR 124 does most of the construction work: five complete fixed-term words, no early-exit flags, a checked singleton-factory runtime, the expected provider and lender, and a sealed provider set. The vault still reads it all back. If the deployed market and the manifest disagree, the money does not move.
+Activation then reads the precommitted initial fixing, approves exactly the notional, deposits it, clears the allowance and records the scaled market position. It checks the vault and market token deltas and starts from an empty market with no existing vault position.
 
-## Activation transaction
+The whole activation is one transaction. A failed check or deposit rolls back the deposit and allowance. It does not alter the `S0` stored when the vault was deployed.
 
-1. Require a successful, finalised raise and the complete series notional.
-2. Run every market acceptance check.
-3. Read the initial Chainlink fixing precommitted when the vault was deployed.
-4. Approve exactly the notional to the market.
-5. Deposit from the vault.
-6. Clear any remaining allowance.
-7. Store `Active` and emit the market, hook, provider, fixing and deposited amount.
+## Evidence
 
-It is one transaction. A failed deposit or final check rolls back the market deposit and allowance, but not the `S0` investors saw before funding.
+`test/BRCActivation.t.sol` deploys the pinned singleton fixed-term stack and covers the passing path, delegated borrower identity, permissionless activation, approval-reset tokens, scale rounding and rejection of transfer-fee assets. It mutates every market, hook, provider and fixed-term condition checked by activation. It also proves that unrelated lenders, market-token recipients, early closure, term reduction, repricing and provider mutation are blocked.
 
-## Tests to add
+## Boundary of this step
 
-- A passing deployment from the pinned factories.
-- A passing deployment through an operational borrower account whose registered principal administers the hook.
-- One failing test for every acceptance check.
-- Unrelated deposits and market-token recipients.
-- Provider creation, addition and removal after construction.
-- Pre-maturity closure, term reduction and APR or reserve-ratio change.
-- Approval reset and a token requiring zero allowance before a new approval.
-- Repeated activation and partial-notional activation.
-
-## Done when
-
-- Only the vault can become a direct market lender.
-- No investor asset moves before all checks pass.
-- After activation, the borrower cannot change the term, close early or reprice the series before maturity.
-- The vault address and manifest identify the deployment and every constructor-level distribution control.
-- The manifest records the Wildcat ArchController, SphereX admin, operator and current engine, and says plainly that they can change after activation.
-- The manifest records the activation-time protocol fee, fee recipient, 10% ceiling, ArchController owner and update authority. The terms also say that accrued protocol fees rank ahead of an unpaid withdrawal in default.
-
-## Not in this task
-
-Do not add maturity withdrawals, note redemption or default recovery.
+Task 07 deposited the note proceeds but did not add maturity withdrawals, redemptions or default recovery. Wildcat governance, SphereX, sanctions and borrower-identity administration remain external trust assumptions recorded by the manifest; activation does not freeze them.

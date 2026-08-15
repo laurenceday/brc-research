@@ -1,67 +1,49 @@
 # Task 11: produce the security and operational package
 
-## Aim
+Status: implemented and merged as an audit-readiness package. This step did not turn the prototype into an audited or production-approved product.
 
-Test the complete series as one system, state the remaining assumptions, and give operators a rehearsal-backed procedure for deployment, maturity and failure handling.
+## Verification shipped
 
-## Stateful properties
+`test/BRCSystemInvariant.t.sol` adds handlers that mix subscriptions, cancellation, activation, market activity, withdrawal queueing, primary and fallback oracle actions, recovery, note transfers and redemptions. The properties check:
 
-Add a handler that explores subscriptions, cancellation, activation, market payments, queueing, oracle submissions, recovery, note transfers, redemptions and fallback proposals in adversarial order. Check throughout that:
-
-- assets leave only through subscription refunds, note redemption or a valid full-performance borrower rebate;
+- funding assets and claims reconcile;
+- assets leave through a valid refund, redemption or full-performance borrower rebate;
 - no borrower rebate is available before complete Wildcat performance;
-- `S0`, `ST`, activation and settlement are each written at most once;
-- noteholder claims do not exceed assets reserved for them;
-- the vault is the only direct market lender and provider configuration remains sealed;
-- caller timing cannot improve the accepted maturity price;
-- changing note ownership or redemption order cannot increase total claims; and
-- terminal accounting reconciles subscriptions, Wildcat proceeds, borrower rebate, note redemptions and stated dust.
+- `S0`, `ST`, activation and settlement do not move backwards or repeat;
+- noteholder claims stay within the reserved assets;
+- the vault remains the singleton lender and provider configuration stays sealed;
+- ownership and redemption order do not enlarge aggregate claims; and
+- terminal settlement reconciles the rebate, reserve, redemptions and dust.
 
-## Test programme
+Deterministic mixed sequences reach terminal normal settlement with a primary fixing, normal settlement with a fallback fixing, and recovery. A separate differential test compares the payoff with exact rational bounds.
 
-- Unit and fuzz suites from every preceding task.
-- Differential payoff tests against an independent high-precision model.
-- Stateful tests with long mixed action sequences.
-- Mainnet-fork tests against the pinned Wildcat factories, hook template, settlement asset and Chainlink proxy.
-- Historical Chainlink fixtures spanning proxy phases, stale periods and missing rounds.
-- Wildcat delinquency, partial repayment, late closure, withdrawal expiry and sanctions cases.
-- Oracle shutdown, fallback challenge and ratifier-compromise exercises.
-- Gas measurements for permissionless maturity and recovery calls, including worst expected evidence sizes.
+Cold-state gas tests cover the maximum accepted 32-round maturity proof and recovery finalisation with eight adopted batches. `.gas-snapshot` records the expected bounds used by CI.
 
-## Review packet
+## Review and operations material shipped
 
-Prepare:
+The step added:
 
-- contract scope and pinned commit list;
-- series state diagram and authority table;
-- asset-flow accounting specification;
-- known limitations and rejected alternatives;
-- upstream dependency and upgrade assumptions;
-- legal questions covering note distribution, oracle licensing, sanctions and cash-settled option treatment;
-- deployment verifier output from a mainnet fork; and
-- an external-audit issue list with each finding tied to a commit.
+- `docs/review-packet.md`, with scope, dependencies, state diagram, authority map, accounting rules, limitations, legal questions and internal findings;
+- `docs/validation-evidence.md`, with the pinned inputs, recorded test evidence and outstanding work;
+- `docs/operations-checklists.md`, with named roles, evidence outputs, time budgets and escalation routes; and
+- `script/release-gate.sh`, which requires dependency checks, formatting, build, CI-profile tests, gas snapshots, a mainnet fork and a series verifier unless development-only incomplete validation is explicitly allowed.
 
-## Operations
+## Recorded evidence
 
-Turn `docs/runbook.md` into executable checklists for:
+The last evidence recorded in the repository on 15 August 2026 reports 229 passing test executions, no failures and one skipped test under the CI profile. That count includes inherited test contracts and is not a count of unique scenarios. Each fuzz test ran 1,000 cases and each stateful invariant ran 256 runs at depth 128.
 
-- pre-deployment review and borrower sign-off;
-- deployment and independent verification;
-- funding finalisation and activation;
-- feed, market and sanctions monitoring during the term;
-- maturity-round proof, Wildcat closure and redemption opening;
-- delinquency and partial recovery;
-- oracle fallback proposal, challenge and ratification; and
-- incident communication and contract-specific evidence retention.
+The same record says the strict release gate did not pass: the development run omitted the RPC-backed mainnet fork and final series verifier. A separate live-feed fork exercise passed, but it did not use approved production Wildcat addresses or produce a signed deployment record.
 
-Assign an owner, expected time and escalation route to every manual step. Rehearse the maturity and recovery checklists on a fork with someone who did not write the contracts.
+## Work still open
 
-## Release gate
+The following items were specified for release but were not completed by task 11:
 
-- All test suites and the deployment verifier pass at the release commit.
-- The runbook rehearsal produces no unresolved execution gap.
-- Contract assumptions match the legal term sheet and series manifest.
-- External review findings are fixed, accepted with written reasoning or marked as deployment blockers.
-- Monitoring and keeper accounts are funded and tested without holding settlement authority.
+- an external security audit and disposition of every finding;
+- written legal advice and reconciliation with the terms and manifest;
+- replay of historical Chainlink data across real phase changes and unavailable rounds;
+- a mainnet-fork deployment and verifier transcript using approved live dependencies;
+- an explanation or removal of the pinned SphereX compiler diagnostic;
+- maturity, fallback, sanctions and recovery rehearsals led by an independent operator; and
+- funded keeper, monitoring and incident-response assignments.
 
-This task may establish audit readiness. It must not describe unaudited contracts as audited or a research series as suitable for public distribution.
+Until those items are closed, the repository is a tested research target and audit package. It is not release approval, an offer document or evidence that the contracts are safe for production capital.

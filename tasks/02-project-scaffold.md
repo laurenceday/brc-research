@@ -1,39 +1,32 @@
 # Task 02: establish the Foundry project
 
-## Aim
+Status: implemented and merged. This page records the project and dependency baseline used by the rest of the prototype.
 
-Set up the smallest reproducible Solidity project we can sensibly build the BRC contracts on. Pin every protocol dependency used to interpret a series, and make the repo fail if one of those pins moves.
+## What shipped
 
-## Work
+The repository gained an explicit Foundry layout, compiler profile, remappings and CI job. The build pins:
 
-- Add `foundry.toml`, remappings and the standard `src`, `test` and `script` layout.
-- Pin the v2-protocol revision that contains the reviewed singleton fixed-term hook implementation.
-- Pin the Chainlink contracts revision used for `AggregatorV3Interface` and proxy-round helpers.
-- Only add a local interface when importing the upstream package would drag in unrelated code. Put the upstream file and commit beside every local copy.
-- Add mock ERC-20, Wildcat market and Chainlink proxy/aggregator fixtures for later tasks.
-- Add commands for formatting, compilation, unit tests and checking the dependency pins.
-- Run those commands in CI on every pull request.
+- `v2-protocol` at the commit recorded in `config/dependencies.env`;
+- `forge-std` at its recorded commit;
+- the source commit and SHA-256 for the vendored Chainlink `AggregatorV3Interface`; and
+- Solidity `0.8.28`, Cancun, optimisation with 200 runs, via IR and no bytecode metadata hash.
 
-## Repo rules
+Production imports resolve either to those pinned dependencies or to the local interfaces whose upstream source is recorded beside them. Test-only mocks stay under `test/mocks`.
 
-- Production contracts may only import pinned dependencies or local interfaces tied to a recorded upstream revision.
-- Test mocks must not be reachable from production source paths.
-- The build must not fetch a moving branch or tag.
-- Compiler version, optimiser settings and EVM target must be explicit.
+The scaffold also added fixtures for:
 
-## Acceptance
+- ERC-20 decimals, transfer failures, no-return calls, transfer fees and rebases;
+- positive, negative, stale, future and incomplete Chainlink rounds, including proxy phase changes; and
+- Wildcat deposits, withdrawals, repayment and closure.
 
-- A clean checkout can run `forge build` and `forge test` without somebody fiddling with it first.
-- A script prints and checks the v2-protocol and Chainlink commit identifiers.
-- CI runs formatting, build, tests and the pin check.
-- The first test suite shows that each mock can express the success and failure cases later tasks need.
+`script/check-dependencies.sh` checks the dependency and interface pins. CI checks those pins, formatting, compilation, tests and the bounded gas snapshots.
 
-## Tests to add
+## Evidence
 
-- ERC-20 decimal and transfer-failure fixtures.
-- Chainlink negative answer, zero answer, stale round, future timestamp and phase-change fixtures.
-- Wildcat deposit, queued withdrawal, partial repayment and closure fixtures.
+`test/Scaffold.t.sol` proves that the basic token, market and feed fixtures can express both success and failure. The later suites use the same fixtures for funding, oracle, activation and settlement tests.
 
-## Not in this task
+A fresh checkout must initialise submodules recursively before running Foundry. The pin check fails when a checked-out dependency no longer matches `config/dependencies.env`.
 
-No BRC payoff logic, oracle selection, note issuance or Wildcat activation yet. This branch is just the workshop; later branches add the product.
+## Boundary of this step
+
+Task 02 established the workshop. It did not add payoff logic, note issuance, oracle selection or Wildcat activation. Those arrived in tasks 03 through 07.

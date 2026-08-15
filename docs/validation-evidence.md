@@ -1,6 +1,8 @@
 # Validation evidence
 
-This file records what the repository test gate proves and, just as importantly, what still needs a real series or another reviewer. Refresh the figures and attach the raw command output after any change to contracts, dependencies or deployment inputs.
+This file records what the repository test gate proves and what still needs a real series or another
+reviewer. Refresh the figures and attach the raw command output after changes to contracts,
+dependencies, deployment inputs or published technical claims.
 
 ## Pinned inputs
 
@@ -26,7 +28,16 @@ BRC_RECORD_PATH=deployments/series.json \
 ./script/release-gate.sh
 ```
 
-The last incomplete local validation on 15 August 2026 built the repository and passed 229 tests under the CI profile, including 1,000 cases for each fuzz test and 256 runs of each stateful invariant. It was run with `BRC_ALLOW_INCOMPLETE_VALIDATION=1`; the mainnet-fork test was skipped because the command did not receive an RPC URL, and the series verifier was skipped because there was no final manifest or deployment record. This is development evidence, not a passing release gate.
+The latest local CI-profile run on 16 August 2026 built the repository and passed 229 tests, with no
+failures and one skipped opt-in mainnet-fork test. It ran 1,000 cases for each fuzz test and 256 runs
+of each stateful invariant. The build printed an `unresolved symbol locals` diagnostic from the
+pinned SphereX source but exited successfully; this run does not establish that the diagnostic is
+harmless. No final manifest, deployment record, RPC-backed verifier run or strict release gate was
+present. This is development evidence, not release approval.
+
+The authored-Markdown check also passed on 16 August 2026. It checks non-vendored Markdown files for
+an H1 heading, nonempty content and resolvable local Markdown links. It does not check factual
+accuracy, external links, rendered diagrams or prose quality.
 
 The explicit development-only form is:
 

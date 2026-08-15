@@ -2,6 +2,10 @@
 
 These are the terms for the research series. They are not a priced offer, and they do not settle the note's legal or tax treatment.
 
+The deployable manifest path requires `minimumRaise == notional`. The underlying vault contract also
+has an unconfigured test mode that can represent a partial minimum; that mode is not a supported BRC
+series configuration.
+
 ## Instrument
 
 The note is a 90-day, USDC-denominated barrier reverse convertible linked to BTC/USD. Investors fund a vault, which becomes the sole lender in a fixed-term Wildcat market. The vault issues one note unit for each smallest unit of USDC subscribed.
@@ -61,7 +65,14 @@ Say `K` is 100,000, `B` is 60,000 and `ST` is 55,000. The slash is 45% of face p
 
 ## Default
 
-Normal BRC settlement needs the vault's complete Wildcat claim to be paid and collected. The otherwise empty market need not be formally closed. The vault can queue its claim from maturity while the BTC fixing is still pending. After the contractual grace period, recovery can open only while that queued claim remains partly unpaid. Partial recoveries stay locked until at least the fixed write-off time, then belong entirely to noteholders; the borrower gets no barrier rebate. Finalisation first collects every amount then withdrawable from the recorded batches and snapshots the pool. Payments arriving later are outside noteholder claims.
+Normal BRC settlement needs the vault's complete Wildcat claim to be paid and collected. The
+otherwise empty market need not be formally closed. The vault can queue its claim from maturity
+while the BTC fixing is still pending. After the separate contractual `recoveryDelay`, recovery can
+open only while that queued claim remains partly unpaid. This delay is distinct from Wildcat's
+`delinquencyGracePeriod`, which controls delinquency accounting. Partial recoveries stay locked until
+at least the fixed write-off time, then belong entirely to noteholders; the borrower gets no barrier
+rebate. Finalisation first collects every amount then withdrawable from the recorded batches and
+snapshots the pool. Payments arriving later are outside noteholder claims.
 
 The write-off time, oracle fallback source, delays, ratifier set, signature threshold and single-ratifier veto all have to be fixed before subscriptions open. Ratifiers in this prototype must be ECDSA EOAs, not Safe or other contract wallets. The contract does not establish that a valid Chainlink round is absent; that remains part of the ratifiers' evidence check.
 

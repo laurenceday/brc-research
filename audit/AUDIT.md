@@ -43,3 +43,17 @@ statement for scope.
 Leads not pursued: automated requests to the cited SEC pages receive `403` responses, but the pages
 were opened and read through the browser. The research source index records that access limitation.
 The step changed no Solidity, so a new Solidity audit or fuzz harness was not applicable.
+
+## Step 2, round 2 -- 16 August 2026
+
+This round reviewed the fixed tree at
+`3279ba78d720a9ea9d422e32dfe0a45e8640e61a`. It repeated the historical-attribution, tax-language
+and return-claim searches, ran all six published vectors, and reran the 229-test CI profile and
+authored-Markdown check.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| -- | -- | -- | No finding. | clean |
+
+Leads not pursued: the documents do not price the option or make suitability, tax or legal claims.
+Those decisions require a real counterparty, jurisdiction, series and professional advice.

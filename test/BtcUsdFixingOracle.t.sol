@@ -52,6 +52,23 @@ contract BtcUsdFixingOracleTest is Test {
     oracle.recordInitialFixing();
   }
 
+  function testRejectsInitialFixingAtOrAfterMaturity() external {
+    feed.setRound(1, 100_000e8, block.timestamp, block.timestamp, 1);
+    vm.warp(block.timestamp + 90 days);
+
+    vm.expectRevert(BtcUsdFixingOracle.InitialFixingAfterMaturity.selector);
+    oracle.recordInitialFixing();
+  }
+
+  function testRejectsInitialObservationAtMaturityDespiteFutureSkew() external {
+    uint256 maturity = oracle.maturity();
+    vm.warp(maturity - 1);
+    feed.setRound(1, 100_000e8, maturity, maturity, 1);
+
+    vm.expectRevert(BtcUsdFixingOracle.InitialFixingAfterMaturity.selector);
+    oracle.recordInitialFixing();
+  }
+
   function testRejectsZeroAndNegativeAnswers() external {
     feed.setRound(1, 0, block.timestamp, block.timestamp, 1);
     vm.expectRevert(BtcUsdFixingOracle.InvalidAnswer.selector);
@@ -146,7 +163,9 @@ contract BtcUsdFixingOracleTest is Test {
       descriptionHash_,
       MAX_AGE,
       MAX_FUTURE_SKEW,
-      BARRIER_BIPS
+      BARRIER_BIPS,
+      uint40(block.timestamp + 90 days),
+      1 hours
     );
   }
 }

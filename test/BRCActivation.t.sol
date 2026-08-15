@@ -8,6 +8,7 @@ import {
   IHooksFactoryView,
   IWildcatActivationMarket
 } from "../src/BRCNoteVault.sol";
+import { BRCFallbackConfig } from "../src/BRCFallback.sol";
 import { BRCState } from "../src/BRCSeries.sol";
 import { IERC20Metadata } from "../src/interfaces/IERC20.sol";
 import { HooksFactory } from "v2-protocol/HooksFactory.sol";
@@ -606,7 +607,16 @@ contract BRCActivationTest is Test {
         maxInitialAge: 0,
         maxFutureSkew: 0,
         barrierBips: 0,
-        maxObservationDelay: 0
+        maxObservationDelay: 0,
+        recoveryDelay: 0,
+        writeOffDelay: 0,
+        fallbackConfig: BRCFallbackConfig({
+          ratifiers: new address[](0),
+          threshold: 0,
+          waitingPeriod: 0,
+          challengePeriod: 0,
+          sourceId: bytes32(0)
+        })
       })
     );
     vm.expectRevert(BRCNoteVault.ActivationNotConfigured.selector);
@@ -690,8 +700,22 @@ contract BRCActivationTest is Test {
       maxInitialAge: 1 hours,
       maxFutureSkew: 30 seconds,
       barrierBips: BARRIER_BIPS,
-      maxObservationDelay: 1 hours
+      maxObservationDelay: 1 hours,
+      recoveryDelay: 2 days,
+      writeOffDelay: 30 days,
+      fallbackConfig: _fallbackConfig()
     });
+  }
+
+  function _fallbackConfig() internal pure returns (BRCFallbackConfig memory config) {
+    config.ratifiers = new address[](3);
+    config.ratifiers[0] = address(0xA11CE);
+    config.ratifiers[1] = address(0xB0B);
+    config.ratifiers[2] = address(0xCAFE);
+    config.threshold = 2;
+    config.waitingPeriod = 1 days;
+    config.challengePeriod = 1 days;
+    config.sourceId = keccak256("BTC fallback");
   }
 
   function _hooksConstructorArgs() internal view returns (bytes memory) {

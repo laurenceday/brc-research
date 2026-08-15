@@ -34,7 +34,9 @@
     "protocolFeeBipsAtActivation": 0,
     "maximumProtocolFeeBips": 1000,
     "protocolFeeMutable": true,
-    "activationDeadline": "SET_BEFORE_DEPLOYMENT"
+    "activationDeadline": "SET_BEFORE_DEPLOYMENT",
+    "recoveryDelay": 172800,
+    "writeOffDelay": 2592000
   },
   "hooks": {
     "singletonFixedTermTemplate": "SET_BEFORE_DEPLOYMENT",
@@ -53,6 +55,18 @@
     "maxFutureSkew": 30,
     "barrierBips": 6000,
     "maturity": "SET_BEFORE_DEPLOYMENT",
-    "maxObservationDelay": 3600
+    "maxObservationDelay": 3600,
+    "fallback": {
+      "waitingPeriod": 86400,
+      "challengePeriod": 86400,
+      "sourceId": "SET_BEFORE_DEPLOYMENT",
+      "threshold": 2,
+      "ratifiers": [
+        "SET_BEFORE_DEPLOYMENT",
+        "SET_BEFORE_DEPLOYMENT",
+        "SET_BEFORE_DEPLOYMENT"
+      ],
+      "singleRatifierMayChallenge": true
+    }
   }
 }

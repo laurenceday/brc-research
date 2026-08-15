@@ -52,13 +52,18 @@ contract BRCSettlementTest is BRCActivationTest {
     assertEq(vault.borrowerRebate() + vault.noteholderReserve(), vault.wildcatProceeds());
   }
 
-  function testCannotQueueWithoutMaturityFixingOrFinalizeOpenMarket() external {
+  function testCanQueueAtMaturityBeforeFixingButCannotFinalizeOpenMarket() external {
     vault.activate();
-    vm.expectRevert(BRCNoteVault.MaturityFixingMissing.selector);
+    vm.expectRevert(BRCNoteVault.MaturityNotReached.selector);
     vault.queueSettlementWithdrawal(new uint32[](0));
 
-    _recordMaturity(80_000e8);
+    vm.warp(maturity);
     vault.queueSettlementWithdrawal(new uint32[](0));
+
+    vm.expectRevert(BRCNoteVault.MaturityFixingMissing.selector);
+    vault.finalizeSettlement();
+
+    _recordMaturity(80_000e8);
 
     vm.expectRevert(BRCNoteVault.IncompleteMarketPerformance.selector);
     vault.finalizeSettlement();

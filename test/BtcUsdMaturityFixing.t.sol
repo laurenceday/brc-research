@@ -3,6 +3,7 @@ pragma solidity ^0.8.28;
 
 import { Test } from "forge-std/Test.sol";
 import { BtcUsdFixingOracle } from "../src/BtcUsdFixingOracle.sol";
+import { BRCFallbackConfig } from "../src/BRCFallback.sol";
 import { AggregatorV3Interface } from "../src/interfaces/AggregatorV3Interface.sol";
 import { MockAggregatorV3 } from "./mocks/MockAggregatorV3.sol";
 import { MockChainlinkProxy } from "./mocks/MockChainlinkProxy.sol";
@@ -190,6 +191,8 @@ contract BtcUsdMaturityFixingTest is Test {
   }
 
   function _deploy() internal returns (BtcUsdFixingOracle) {
+    address[] memory ratifiers = new address[](1);
+    ratifiers[0] = address(0xA11CE);
     return new BtcUsdFixingOracle(
       AggregatorV3Interface(address(proxy)),
       address(this),
@@ -199,7 +202,14 @@ contract BtcUsdMaturityFixingTest is Test {
       30 seconds,
       BARRIER_BIPS,
       maturity,
-      MAX_OBSERVATION_DELAY
+      MAX_OBSERVATION_DELAY,
+      BRCFallbackConfig({
+        ratifiers: ratifiers,
+        threshold: 1,
+        waitingPeriod: 1 hours,
+        challengePeriod: 1 hours,
+        sourceId: keccak256("BTC fallback")
+      })
     );
   }
 

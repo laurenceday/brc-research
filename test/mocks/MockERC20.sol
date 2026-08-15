@@ -7,6 +7,8 @@ contract MockERC20 {
   uint8 public immutable decimals;
   uint256 public totalSupply;
   bool public failTransfers;
+  bool public noReturnData;
+  uint16 public feeBips;
 
   mapping(address => uint256) public balanceOf;
   mapping(address => mapping(address => uint256)) public allowance;
@@ -19,6 +21,26 @@ contract MockERC20 {
 
   function setFailTransfers(bool value) external {
     failTransfers = value;
+  }
+
+  function setNoReturnData(bool value) external {
+    noReturnData = value;
+  }
+
+  function setFeeBips(uint16 value) external {
+    feeBips = value;
+  }
+
+  function rebase(address account, int256 amount) external {
+    if (amount >= 0) {
+      uint256 increase = uint256(amount);
+      balanceOf[account] += increase;
+      totalSupply += increase;
+    } else {
+      uint256 decrease = uint256(-amount);
+      balanceOf[account] -= decrease;
+      totalSupply -= decrease;
+    }
   }
 
   function mint(address recipient, uint256 amount) external {
@@ -34,6 +56,11 @@ contract MockERC20 {
   function transfer(address recipient, uint256 amount) external returns (bool) {
     if (failTransfers) return false;
     _transfer(msg.sender, recipient, amount);
+    if (noReturnData) {
+      assembly ("memory-safe") {
+        return(0, 0)
+      }
+    }
     return true;
   }
 
@@ -42,11 +69,18 @@ contract MockERC20 {
     uint256 allowed = allowance[sender][msg.sender];
     if (allowed != type(uint256).max) allowance[sender][msg.sender] = allowed - amount;
     _transfer(sender, recipient, amount);
+    if (noReturnData) {
+      assembly ("memory-safe") {
+        return(0, 0)
+      }
+    }
     return true;
   }
 
   function _transfer(address sender, address recipient, uint256 amount) internal {
     balanceOf[sender] -= amount;
-    balanceOf[recipient] += amount;
+    uint256 fee = amount * feeBips / 10_000;
+    balanceOf[recipient] += amount - fee;
+    totalSupply -= fee;
   }
 }

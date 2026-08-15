@@ -1,51 +1,53 @@
-# Task 06: implement note funding and cancellation
+# Task 06: take subscriptions and make failed raises boring
 
-## Aim
+## What we're building
 
-Let eligible investors subscribe USDC into a fixed BRC series, mint matching note claims, and recover funds exactly if the raise does not proceed.
+Eligible investors put USDC into one fixed BRC series and receive the same number of note base units. If the raise does not clear its minimum, the current note holders burn their notes and pull the USDC back themselves.
 
 ## Funding states
 
-Use an explicit state machine: `Funding`, `Funded`, `Cancelled`, then the activation and settlement states introduced by later tasks. No external call may skip a state.
+The state machine starts `Funding`, then goes to either `Funded` or `Cancelled`. Later PRs add activation and settlement; this one cannot skip into them.
 
-- Subscriptions close at the earlier of the hard cap or funding deadline.
+- Subscriptions stop at the hard cap or funding deadline, whichever comes first.
 - The hard cap is the series notional.
-- A minimum raise may be set in immutable terms.
-- After the deadline, anyone may finalise a successful raise or cancel an underfunded one.
-- Cancellation enables pull-based refunds and permanently disables activation.
+- A full-cap raise can be finalised early. A partly filled successful raise waits until the deadline.
+- After the deadline, anyone can finalise a raise at or above the minimum, or cancel one below it.
+- Cancellation is terminal and opens pull refunds.
 
-## Note token
+## Notes
 
-- Mint one note unit per settlement-asset unit subscribed, using a stated decimal convention.
-- Burn notes on refunds and, later, redemption.
-- Decide transfer policy at deployment. If transfers are restricted, enforce the rule in mint, transfer and transfer-from paths rather than relying on the Wildcat market hook.
-- Emit subscription, funding-finalisation, cancellation and refund records with post-action totals.
+One settlement-asset base unit mints one note base unit, and the note copies the asset's decimals. The transfer policy is fixed at deployment.
 
-## Asset handling
+Restricted notes check the payer and mint recipient during subscription. Direct transfers check sender and recipient; delegated transfers also check the operator. Eligibility can change, but it never gates a cancellation refund. Losing a credential is not a licence to confiscate somebody's USDC.
 
-- Use balance-delta accounting when receiving the settlement asset, or reject fee-on-transfer and rebasing assets explicitly.
-- Enforce checks before token movement.
-- Do not approve or deposit into Wildcat in this task.
-- Do not add a general call, delegate-call or arbitrary token sweep function.
-- Permit recovery of an unrelated token only under a narrow rule that cannot select the settlement asset, notes or future market tokens.
+Every subscription, finalisation, cancellation and refund emits the post-action note total.
 
-## Tests to add
+## Asset accounting
 
-- Partial, exact-cap and over-cap subscriptions.
-- Subscription at and after the deadline.
-- Successful finalisation and underfunded cancellation.
-- Refunds in every order, including a final dust holder.
-- Repeated finalisation, cancellation and refund attempts.
-- Restricted-transfer checks for sender, recipient and operator paths.
-- Tokens that return false, return no value, charge a fee or rebase.
+The vault checks the actual token movement instead of trusting an ERC-20 return value. Standard `true` returns and old no-return tokens are accepted; false returns, malformed returns and non-exact balance deltas revert.
 
-## Accounting properties
+Outstanding notes are the liability. The vault must hold at least that much USDC, but it may hold more: anyone can send a token directly to any ERC-20 recipient, so an unsolicited one-unit donation cannot be allowed to freeze the raise. Surplus never mints notes and remains outside subscription accounting. A deficit, inbound fee or short-paid refund still stops the transaction.
 
-- During funding, settlement assets held equal outstanding note supply.
-- Cancellation refunds exactly the accepted subscription amount in aggregate.
-- No account can mint notes without increasing accepted assets by the matching amount.
-- No successful series can exceed its immutable notional.
+There is no token approval, Wildcat deposit, arbitrary call, delegate-call or sweep function here.
 
-## Not in this task
+## Cases covered
 
-Do not verify or fund a Wildcat market, record `S0`, calculate a maturity price or settle the notes.
+- Partial fill, exact cap, over-cap and deadline boundaries.
+- Early full-cap finalisation, post-deadline finalisation and underfunded cancellation.
+- Refunds after notes move between investors, including the last holder.
+- Repeated transitions and repeated refunds.
+- Restricted sender, recipient and operator paths, plus unrestricted transfers.
+- False-return, no-return, fee-charging and rebasing token behaviour.
+- Unsolicited settlement-token surplus before subscriptions, finalisation and refunds.
+- Refunds after the controller revokes a holder's eligibility.
+
+## Accounting rules
+
+- Note supply never exceeds notional.
+- Minting `x` notes requires this call to increase vault assets by exactly `x`.
+- During Funding and Cancelled, vault assets cover every outstanding note; surplus is ignored and deficits fail closed.
+- A successful refund decreases both the holder's notes and their outstanding asset claim by the same amount.
+
+## Not in this PR
+
+No Wildcat market verification or deposit, no `S0`, no maturity price and no note settlement.

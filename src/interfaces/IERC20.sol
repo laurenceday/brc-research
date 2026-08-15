@@ -10,3 +10,7 @@ interface IERC20 {
 
   function approve(address spender, uint256 amount) external returns (bool);
 }
+
+interface IERC20Metadata is IERC20 {
+  function decimals() external view returns (uint8);
+}

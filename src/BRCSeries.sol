@@ -11,6 +11,7 @@ struct BRCSeriesTerms {
 
 enum BRCState {
   Funding,
+  Funded,
   Active,
   Withdrawing,
   Settled,

@@ -154,6 +154,8 @@ contract BtcUsdFixingOracle {
     (uint80 roundId, int256 answer,, uint256 updatedAt, uint80 answeredInRound) =
       feed.latestRoundData();
     uint128 price = _validateInitialRound(roundId, answer, updatedAt, answeredInRound);
+    RoundReference memory initialRound = _resolveRound(roundId);
+    _checkAggregatorMetadata(initialRound.aggregator);
 
     fixing = InitialFixing(roundId, price, updatedAt);
     initialFixing = fixing;

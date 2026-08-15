@@ -3,7 +3,7 @@
 ## Before deployment
 
 1. Pin the audited v2-protocol commit and check it contains the final `SingletonFixedTermHooks` implementation.
-2. Check the approved hooks template, hooks factory and singleton role-provider factory addresses.
+2. Check the approved hooks template, hooks factory and singleton role-provider factory addresses. Record the Wildcat ArchController owner, SphereX admin, operator and current engine; these are trust inputs, and the engine can change later. Record the template's fee recipient and protocol fee as well.
 3. Check that Wildcat accepts the settlement asset, then record its address and decimals.
 4. Check the standard Ethereum mainnet Chainlink BTC/USD proxy, `description()` and `decimals()` against Chainlink's current directory.
 5. Freeze the series manifest, legal terms, note transfer policy, maturity, oracle delay and fallback procedure.
@@ -12,10 +12,10 @@
 ## Deploy the series
 
 1. Choose the market salt and calculate the expected market address through `HooksFactory.computeMarketAddress`.
-2. Deploy a non-upgradeable `BRCNoteVault` bound to the expected address.
-3. Open subscriptions. Enforce the notional cap and funding deadline.
-4. Close funding or enable refunds if the minimum raise was missed.
-5. Encode one zero-TTL singleton provider with the vault as lender. Do not supply an existing provider or a second one.
+2. Check that the salt starts with the operational borrower address. Record the operational borrower and its registered principal separately.
+3. Read the current BTC/USD proxy round, then deploy a non-upgradeable `BRCNoteVault` bound to the expected market. Deployment stores `S0`, the strike and the barrier before subscriptions open.
+4. Encode one zero-TTL singleton provider with the vault as lender. Do not supply an existing provider or a second one.
+5. Record the provider factory's deployed runtime code hash in the manifest.
 6. Encode the fixed-term hook data as five complete ABI words:
 
 ```solidity
@@ -29,28 +29,36 @@ abi.encode(
 ```
 
 7. Request deposit and transfer dispatch. Leave raw withdrawal access false. The fixed-term parent adds the queue, close and APR/reserve-ratio dispatch it requires.
-8. Call `deployMarketAndHooks` from the registered borrower account.
+8. Call `deployMarketAndHooks` from the operational borrower account.
 
 ## Verify before moving funds
 
-Check the market address, asset, borrower, supply cap, APR, reserve ratio, maturity and hook address. Then check that provider configuration is sealed, there is one pull provider and no push provider, and the provider's lender is the vault with a zero TTL.
+Check the market address, asset, operational borrower, registered borrower principal, empty pending-borrower slot, supply cap, APR, reserve ratio, delinquency fee, delinquency grace period, withdrawal-batch duration, fee recipient, activation-time protocol fee, maturity and hook address. Confirm that the hook administrator is the registered principal. Then check that provider configuration is sealed, there is one pull provider and no push provider, and the provider's lender is the vault with a zero TTL.
 
 Read `getHookedMarket` and check deposit access, transfer access, disabled market-token transfers, disabled early closure and disabled term reduction. Try an unrelated deposit, market-token transfer, pre-maturity close, repricing, term reduction and provider mutation. Every call should revert.
 
-Check the vault bytecode, series manifest hash, note supply, funding total, feed metadata and expected market address.
+Check the vault bytecode, series manifest hash, stored `S0`, feed metadata and expected market address. Re-read the ArchController's SphereX admin, operator and engine, and check that the market reports that engine. Wildcat permits borrower succession and SphereX engine changes after activation. Write both down as live legal, credit and governance assumptions; they are not frozen onchain terms.
+
+## Fund the series
+
+1. Only after the market and hook checks pass, open note eligibility and subscriptions.
+2. Enforce the notional cap and funding deadline.
+3. Finalise a full raise. If the minimum raise is missed, cancel funding and enable refunds.
+4. Recheck note supply, vault backing and the complete manifest before activation.
 
 ## Activate
 
-1. Read a fresh BTC/USD round and store `S0` once.
-2. Calculate `K = S0` and the barrier from the manifest.
-3. Approve exactly the funded notional to the market.
-4. Deposit it from the vault.
-5. Remove the remaining approval.
-6. Enter `Active` and emit the full fixing and activation record.
+1. Read the already stored `S0`, strike and barrier from the vault's oracle.
+2. Re-run every live market, hook, provider and borrower-identity check.
+3. Before the activation deadline, call permissionless `activate()`.
+4. Confirm that the vault approved and deposited exactly the notional, removed the remaining approval and entered `Active`.
+5. Match the activation event's market, hook, provider and stored fixing to the manifest.
+
+If activation never succeeds, call `cancelUnactivated()` at the activation deadline and let current noteholders refund. A failed activation does not replace or erase `S0`.
 
 ## During the term
 
-Keep an eye on the Chainlink feed, proxy phase, deprecation notices, market liquidity, delinquency, protocol-fee changes, the vault's sanctions status and the maturity transaction path. Rehearse the maturity and fallback calls on a fork before the observation time.
+Keep an eye on the Chainlink feed, proxy phase, deprecation notices, market liquidity, delinquency, protocol-fee changes, the vault's sanctions status, the ArchController owner, the SphereX admin, operator and engine, and the maturity transaction path. The ArchController owner can raise the fee to 1,000 bips and push it to the active market. Treat any fee, SphereX role or engine change as a reason to repeat the recovery and withdrawal-path rehearsal. Rehearse the maturity and fallback calls on a fork before the observation time.
 
 ## At maturity
 

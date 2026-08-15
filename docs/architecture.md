@@ -43,4 +43,4 @@ Funding -> Active -> Withdrawing -> Settled -> Redeemable
                     +-------------> Recovery
 ```
 
-Funding can end in cancellation if the minimum raise is missed. Active fixes `S0` and deposits the notional. Withdrawing fixes `ST` and queues the whole Wildcat position. Settled only becomes available after full performance. Recovery holds partial proceeds and pays no borrower rebate.
+The configured vault fixes `S0` during deployment, before funding. Funding can end in cancellation if the minimum raise is missed. Active deposits the notional against that precommitted fixing. Withdrawing fixes `ST` and queues the whole Wildcat position. Settled only becomes available after full performance. Recovery holds partial proceeds and pays no borrower rebate.

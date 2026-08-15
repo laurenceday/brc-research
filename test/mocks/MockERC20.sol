@@ -8,6 +8,7 @@ contract MockERC20 {
   uint256 public totalSupply;
   bool public failTransfers;
   bool public noReturnData;
+  bool public requireZeroBeforeApprove;
   uint16 public feeBips;
 
   mapping(address => uint256) public balanceOf;
@@ -25,6 +26,10 @@ contract MockERC20 {
 
   function setNoReturnData(bool value) external {
     noReturnData = value;
+  }
+
+  function setRequireZeroBeforeApprove(bool value) external {
+    requireZeroBeforeApprove = value;
   }
 
   function setFeeBips(uint16 value) external {
@@ -49,6 +54,9 @@ contract MockERC20 {
   }
 
   function approve(address spender, uint256 amount) external returns (bool) {
+    if (requireZeroBeforeApprove && amount != 0 && allowance[msg.sender][spender] != 0) {
+      revert("allowance must be zero");
+    }
     allowance[msg.sender][spender] = amount;
     return true;
   }

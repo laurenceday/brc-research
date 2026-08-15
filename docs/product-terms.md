@@ -29,9 +29,15 @@ A final deployment may use different commercial parameters. Whatever they are, t
 
 ## Price observations
 
-`S0` is a fresh Chainlink BTC/USD answer, recorded when the vault activates and deposits the funded notional into Wildcat.
+`S0` is a fresh Chainlink BTC/USD proxy answer recorded when the vault is deployed. Investors can inspect the stored round, strike and barrier before subscribing. Activation reads that fixed value; it does not choose another observation.
 
 `ST` is the first valid Chainlink BTC/USD proxy round with an `updatedAt` at or after maturity, but no later than `maturity + maxOracleDelay`. A settlement caller cannot pick a later round just because its answer looks nicer.
+
+The market's withdrawal-batch duration is fixed in the series manifest and checked before activation. It controls the ordinary delay between queuing the vault's claim at maturity and being able to execute it if the borrower has not already closed the market.
+
+The manifest also fixes the Wildcat delinquency fee and grace period: when extra delinquency compensation starts, and how quickly it accrues if the market cannot meet withdrawal demand.
+
+The vault also checks the activation-time protocol fee and fee recipient before depositing. Wildcat governance can later move the fee, up to 1,000 bips. If the borrower pays in full, that adds to its debt without cutting the stated lender APR. In default, accrued protocol fees sit ahead of an unpaid lender withdrawal and can eat into noteholder recovery.
 
 The feed address, decimals and description hash are fixed in the series terms and checked onchain. A missing or invalid answer pauses settlement; it never means the barrier was missed.
 
@@ -58,3 +64,5 @@ Say `K` is 100,000, `B` is 60,000 and `ST` is 55,000. The slash is 45% of face p
 Normal BRC settlement needs the market to close and the vault to collect its complete Wildcat claim. Until that happens, the series stays in recovery. Partial recoveries belong to noteholders and the borrower gets no barrier rebate.
 
 Any later write-off, negotiated recovery or fallback price process has to follow rules fixed before subscriptions open.
+
+The Wildcat ArchController can replace the market's SphereX engine. A replacement can block withdrawal queueing or execution, and the BRC vault has no second route out after activation. The ArchController owner can change and push the protocol fee too. The manifest records the owner, SphereX roles, engine, fee recipient and fee seen before funding; the bits Wildcat can change remain live governance assumptions for the whole term.

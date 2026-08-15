@@ -1,0 +1,58 @@
+{
+  "v2ProtocolCommit": "99bb85840a77a56fa5f64504a60ec126b6047cf5",
+  "wildcatGovernance": {
+    "archController": "SET_BEFORE_DEPLOYMENT",
+    "archControllerOwner": "SET_BEFORE_DEPLOYMENT",
+    "sphereXAdmin": "SET_BEFORE_DEPLOYMENT",
+    "sphereXOperator": "SET_BEFORE_DEPLOYMENT",
+    "sphereXEngineAtFunding": "SET_BEFORE_DEPLOYMENT",
+    "sphereXEngineMutable": true
+  },
+  "vault": {
+    "address": "SET_AFTER_DEPLOYMENT",
+    "name": "Wildcat BTC BRC Note",
+    "symbol": "wcBRC-BTC",
+    "accessController": "SET_BEFORE_DEPLOYMENT",
+    "transfersRestricted": true,
+    "fundingDeadline": "SET_BEFORE_DEPLOYMENT",
+    "minimumRaise": "1000000000000"
+  },
+  "market": {
+    "address": "SET_BEFORE_DEPLOYMENT",
+    "borrower": "SET_BEFORE_DEPLOYMENT",
+    "borrowerPrincipal": "SET_BEFORE_DEPLOYMENT",
+    "hooksFactory": "SET_BEFORE_DEPLOYMENT",
+    "salt": "SET_BEFORE_DEPLOYMENT",
+    "settlementAsset": "SET_BEFORE_DEPLOYMENT",
+    "notional": "1000000000000",
+    "annualInterestBips": 1200,
+    "reserveRatioBips": 1000,
+    "delinquencyFeeBips": 0,
+    "delinquencyGracePeriod": 86400,
+    "withdrawalBatchDuration": 86400,
+    "feeRecipient": "SET_BEFORE_DEPLOYMENT",
+    "protocolFeeBipsAtActivation": 0,
+    "maximumProtocolFeeBips": 1000,
+    "protocolFeeMutable": true,
+    "activationDeadline": "SET_BEFORE_DEPLOYMENT"
+  },
+  "hooks": {
+    "singletonFixedTermTemplate": "SET_BEFORE_DEPLOYMENT",
+    "singletonProviderFactory": "SET_BEFORE_DEPLOYMENT",
+    "singletonProviderFactoryCodeHash": "SET_BEFORE_DEPLOYMENT",
+    "providerSalt": "SET_BEFORE_DEPLOYMENT",
+    "transfersDisabled": true,
+    "allowClosureBeforeTerm": false,
+    "allowTermReduction": false
+  },
+  "oracle": {
+    "btcUsdFeed": "SET_BEFORE_DEPLOYMENT",
+    "feedDecimals": 8,
+    "feedDescription": "BTC / USD",
+    "maxInitialAge": 3600,
+    "maxFutureSkew": 30,
+    "barrierBips": 6000,
+    "maturity": "SET_BEFORE_DEPLOYMENT",
+    "maxObservationDelay": 3600
+  }
+}

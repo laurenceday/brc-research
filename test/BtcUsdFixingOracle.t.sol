@@ -5,6 +5,7 @@ import { Test } from "forge-std/Test.sol";
 import { BtcUsdFixingOracle } from "../src/BtcUsdFixingOracle.sol";
 import { AggregatorV3Interface } from "../src/interfaces/AggregatorV3Interface.sol";
 import { MockAggregatorV3 } from "./mocks/MockAggregatorV3.sol";
+import { MockChainlinkProxy } from "./mocks/MockChainlinkProxy.sol";
 
 contract BtcUsdFixingOracleTest is Test {
   uint8 internal constant FEED_DECIMALS = 8;
@@ -14,17 +15,20 @@ contract BtcUsdFixingOracleTest is Test {
   bytes32 internal constant DESCRIPTION_HASH = keccak256("BTC / USD");
 
   MockAggregatorV3 internal feed;
+  MockChainlinkProxy internal proxy;
   BtcUsdFixingOracle internal oracle;
 
   function setUp() external {
     vm.warp(10 days);
     feed = new MockAggregatorV3(FEED_DECIMALS, "BTC / USD");
-    oracle = _deploy(feed, address(this), FEED_DECIMALS, DESCRIPTION_HASH);
+    proxy = new MockChainlinkProxy(FEED_DECIMALS, "BTC / USD");
+    proxy.setPhase(1, feed);
+    oracle = _deploy(proxy, address(this), FEED_DECIMALS, DESCRIPTION_HASH);
   }
 
   function testRecordsFreshInitialFixingAndDerivedTerms() external {
-    uint80 roundId = (uint80(2) << 64) | 1;
-    feed.setRound(roundId, 100_000e8, block.timestamp, block.timestamp, roundId);
+    uint80 roundId = _round(1, 1);
+    feed.setRound(1, 100_000e8, block.timestamp, block.timestamp, 1);
 
     BtcUsdFixingOracle.InitialFixing memory fixing = oracle.recordInitialFixing();
 
@@ -99,7 +103,7 @@ contract BtcUsdFixingOracleTest is Test {
     feed.setRound(1, 100_000e8, block.timestamp - MAX_AGE, block.timestamp - MAX_AGE, 1);
     oracle.recordInitialFixing();
 
-    BtcUsdFixingOracle second = _deploy(feed, address(this), FEED_DECIMALS, DESCRIPTION_HASH);
+    BtcUsdFixingOracle second = _deploy(proxy, address(this), FEED_DECIMALS, DESCRIPTION_HASH);
     feed.setRound(
       2, 100_000e8, block.timestamp + MAX_FUTURE_SKEW, block.timestamp + MAX_FUTURE_SKEW, 2
     );
@@ -114,13 +118,21 @@ contract BtcUsdFixingOracleTest is Test {
 
   function testRejectsRoundZero() external {
     feed.setRound(0, 100_000e8, block.timestamp, block.timestamp, 0);
-    vm.expectRevert(BtcUsdFixingOracle.InvalidRoundId.selector);
+    vm.expectRevert(BtcUsdFixingOracle.InvalidRoundEvidence.selector);
     oracle.recordInitialFixing();
+  }
+
+  function testRejectsDirectAggregatorWithoutProxyPhaseHistory() external {
+    feed.setRound(1, 100_000e8, block.timestamp, block.timestamp, 1);
+    BtcUsdFixingOracle direct = _deploy(feed, address(this), FEED_DECIMALS, DESCRIPTION_HASH);
+
+    vm.expectRevert(BtcUsdFixingOracle.InvalidRoundEvidence.selector);
+    direct.recordInitialFixing();
   }
 
   function testRejectsDecimalAndDescriptionMismatch() external {
     vm.expectRevert(abi.encodeWithSelector(BtcUsdFixingOracle.FeedDecimalsMismatch.selector, 8, 18));
-    _deploy(feed, address(this), 18, DESCRIPTION_HASH);
+    _deploy(proxy, address(this), 18, DESCRIPTION_HASH);
 
     bytes32 expected = keccak256("ETH / USD");
     vm.expectRevert(
@@ -128,7 +140,7 @@ contract BtcUsdFixingOracleTest is Test {
         BtcUsdFixingOracle.FeedDescriptionMismatch.selector, DESCRIPTION_HASH, expected
       )
     );
-    _deploy(feed, address(this), FEED_DECIMALS, expected);
+    _deploy(proxy, address(this), FEED_DECIMALS, expected);
   }
 
   function testRejectedRoundLeavesNoPartialFixing() external {
@@ -151,13 +163,13 @@ contract BtcUsdFixingOracleTest is Test {
   }
 
   function _deploy(
-    MockAggregatorV3 feed_,
+    AggregatorV3Interface feed_,
     address recorder_,
     uint8 decimals_,
     bytes32 descriptionHash_
   ) internal returns (BtcUsdFixingOracle) {
     return new BtcUsdFixingOracle(
-      AggregatorV3Interface(address(feed_)),
+      feed_,
       recorder_,
       decimals_,
       descriptionHash_,
@@ -167,5 +179,9 @@ contract BtcUsdFixingOracleTest is Test {
       uint40(block.timestamp + 90 days),
       1 hours
     );
+  }
+
+  function _round(uint16 phase, uint64 aggregatorRoundId) internal pure returns (uint80) {
+    return (uint80(phase) << 64) | aggregatorRoundId;
   }
 }

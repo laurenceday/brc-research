@@ -11,10 +11,10 @@ The oracle adapter must bind:
 - the proxy address;
 - the expected feed decimals;
 - a hash of the expected `description()` value;
-- the maximum age permitted for the activation round; and
+- the maximum age permitted for the deployment round; and
 - the maximum tolerated future timestamp skew.
 
-Deployment or activation has to fail if the live proxy does not match the recorded metadata. There is no admin price setter and no open-ended feed replacement path.
+Deployment has to fail if the live proxy does not match the recorded metadata. There is no admin price setter and no open-ended feed replacement path.
 
 ## Round validation
 
@@ -30,11 +30,11 @@ Keep raw feed units in oracle storage. Only convert at the payoff-library edge, 
 
 ## Initial fixing
 
-- Read `latestRoundData()` during activation.
-- Require the round to be fresh at the activation transaction timestamp.
+- Read `latestRoundData()` while deploying the configured vault.
+- Require the round to be fresh at the vault deployment timestamp.
 - Store `S0`, its proxy round identifier and `updatedAt` together.
 - Derive the strike and barrier from stored `S0` and the immutable series terms.
-- Make the write one-shot. If activation fails, it must leave no half-written fixing behind.
+- Make the write one-shot. A failed vault deployment must leave no half-written fixing behind; a later activation failure must retain the precommitted fixing.
 
 ## Tests to add
 
@@ -44,7 +44,7 @@ Keep raw feed units in oracle storage. Only convert at the payoff-library edge, 
 - `answeredInRound < roundId`.
 - Decimal and description mismatches.
 - A second initial-fixing attempt.
-- A proxy phase change before activation.
+- A proxy phase change before deployment.
 
 ## Acceptance
 
@@ -55,4 +55,4 @@ Keep raw feed units in oracle storage. Only convert at the payoff-library edge, 
 
 ## Not in this task
 
-This branch does not choose the post-maturity round or add a fallback. `latestRoundData()` is fine for a fresh activation observation; it is not the maturity selection rule.
+This branch does not choose the post-maturity round or add a fallback. `latestRoundData()` is fine for a fresh deployment observation; it is not the maturity selection rule.

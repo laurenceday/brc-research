@@ -7,6 +7,11 @@ cd "$repository_root"
 temporary_directory="$(mktemp -d)"
 trap 'rm -rf "$temporary_directory"' EXIT
 
+if [[ "${CI:-}" == "true" ]]; then
+  puppeteer_config="$temporary_directory/puppeteer.json"
+  printf '%s\n' '{"args":["--no-sandbox","--disable-setuid-sandbox"]}' > "$puppeteer_config"
+fi
+
 diagram_count=0
 while IFS= read -r markdown_file; do
   file_slug="${markdown_file//\//_}"
@@ -28,10 +33,18 @@ done < <(git ls-files --cached --others --exclude-standard '*.md' ':!:lib/**')
 
 while IFS= read -r -d '' diagram_file; do
   diagram_count=$((diagram_count + 1))
-  npx --yes @mermaid-js/mermaid-cli@11.16.0 \
-    --input "$diagram_file" \
-    --output "$temporary_directory/diagram-$diagram_count.svg" \
-    >/dev/null
+  if [[ "${CI:-}" == "true" ]]; then
+    npx --yes @mermaid-js/mermaid-cli@11.16.0 \
+      --input "$diagram_file" \
+      --output "$temporary_directory/diagram-$diagram_count.svg" \
+      --puppeteerConfigFile "$puppeteer_config" \
+      >/dev/null
+  else
+    npx --yes @mermaid-js/mermaid-cli@11.16.0 \
+      --input "$diagram_file" \
+      --output "$temporary_directory/diagram-$diagram_count.svg" \
+      >/dev/null
+  fi
 done < <(find "$temporary_directory" -type f -name '*.mmd' -print0 | sort -z)
 
 if [[ "$diagram_count" -eq 0 ]]; then

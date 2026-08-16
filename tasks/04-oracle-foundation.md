@@ -1,58 +1,29 @@
 # Task 04: add the Chainlink oracle foundation
 
-## Aim
+Status: implemented and merged. This step bound each configured series to one Chainlink BTC/USD proxy and stored its initial fixing.
 
-Bind a series to one named Chainlink BTC/USD proxy and store its initial fixing once. Anything incomplete, stale or inconsistent with the manifest gets rejected.
+## What shipped
 
-## Immutable feed identity
-
-The oracle adapter must bind:
+`BtcUsdFixingOracle` fixes the following values at construction:
 
 - the proxy address;
-- the expected feed decimals;
-- a hash of the expected `description()` value;
-- the maximum age permitted for the deployment round; and
-- the maximum tolerated future timestamp skew.
+- expected decimals;
+- the hash of `description()`;
+- the maximum age of the initial round; and
+- the permitted future timestamp skew.
 
-Deployment has to fail if the live proxy does not match the recorded metadata. There is no admin price setter and no open-ended feed replacement path.
+Construction checks the live metadata. There is no administrator price setter or feed-replacement function.
 
-## Round validation
+The initial round must have a positive answer, a nonzero round ID and timestamp, `answeredInRound >= roundId`, a timestamp before maturity and an age within the configured limits. A successful call stores the proxy round ID, answer and update time once, then derives strike and barrier from that answer.
 
-For each accepted round, require:
+Prices remain in the Chainlink feed's raw units. There is no conversion at the payoff edge: `K`, `B` and `ST` all use the same feed precision, so the units cancel in `(K - ST) / K`. Settlement-asset decimals determine the note and settlement-token units, not the BTC price ratio.
 
-- `answer > 0`;
-- `updatedAt != 0`;
-- `updatedAt <= block.timestamp + permittedSkew`;
-- `answeredInRound >= roundId`; and
-- the age at the relevant observation point is within the configured limit.
+The vault creates the oracle and records `S0` in its constructor. If vault deployment reverts, the oracle deployment and fixing revert with it. A later activation failure does not alter the stored fixing.
 
-Keep raw feed units in oracle storage. Only convert at the payoff-library edge, with the rounding rule written down.
+## Evidence
 
-## Initial fixing
+`test/BtcUsdFixingOracle.t.sol` covers the accepted path, caller restriction, repeated recording, zero and negative answers, stale and future timestamps, incomplete rounds, round zero, direct aggregators without proxy phase history, and decimal or description mismatches. Fuzzing covers the configured age and future-skew boundaries.
 
-- Read `latestRoundData()` while deploying the configured vault.
-- Require the round to be fresh at the vault deployment timestamp.
-- Store `S0`, its proxy round identifier and `updatedAt` together.
-- Derive the strike and barrier from stored `S0` and the immutable series terms.
-- Make the write one-shot. A failed vault deployment must leave no half-written fixing behind; a later activation failure must retain the precommitted fixing.
+## Boundary of this step
 
-## Tests to add
-
-- Correct proxy metadata and a fresh positive answer.
-- Zero and negative answers.
-- Zero, stale and future timestamps.
-- `answeredInRound < roundId`.
-- Decimal and description mismatches.
-- A second initial-fixing attempt.
-- A proxy phase change before deployment.
-
-## Acceptance
-
-- Every rejected value fails with a specific custom error.
-- An accepted fixing records enough detail to reproduce it from Chainlink history.
-- No privileged account can revise `S0`, the strike, the barrier or the bound proxy.
-- Fuzz tests cover timestamp limits and feed-decimal conversion.
-
-## Not in this task
-
-This branch does not choose the post-maturity round or add a fallback. `latestRoundData()` is fine for a fresh deployment observation; it is not the maturity selection rule.
+Task 04 did not choose `ST` or add fallback governance. Task 05 added deterministic maturity selection, and task 09 added the delayed ratifier route.

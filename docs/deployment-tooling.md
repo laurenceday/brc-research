@@ -38,7 +38,9 @@ The command calculates addresses in this order:
 
 Nothing is filled in later. In particular, the vault has no market setter.
 
-The requested hook config enables deposit and transfer dispatch but leaves raw queue-withdrawal access false. The fixed-term data is exactly 160 bytes:
+The requested hook config enables deposit and transfer dispatch. The fixed-term template separately
+forces queue-withdrawal hook dispatch on, while the market policy field
+`withdrawalRequiresAccess` remains false. The fixed-term data is exactly 160 bytes:
 
 ```solidity
 abi.encode(uint32(maturity), uint128(0), true, false, false)
@@ -66,7 +68,8 @@ If the template charges an origination fee, the command approves exactly that am
 
 Run the same command with the wallet's signing option and `--broadcast`. The borrower account must already be registered with the manifest's principal in Wildcat, and the account factory must have been approved by the identity registry administrator.
 
-Then run the read-only check:
+Run this read-only check before subscriptions open and again after deployment-state changes that
+could affect the recorded assumptions:
 
 ```bash
 forge script script/VerifyBRC.s.sol:VerifyBRC \

@@ -1,62 +1,34 @@
 # Task 08: implement normal maturity settlement
 
-## Aim
+Status: implemented and merged. This step turns complete Wildcat performance and the stored BTC maturity fixing into a borrower rebate and a noteholder reserve.
 
-Turn a fully paid Wildcat claim and the fixed BTC maturity observation into two pots: the borrower's rebate and the assets backing note redemption.
+## What shipped
 
-## Settlement sequence
+At or after maturity, anybody may queue the vault's complete Wildcat position. The caller may supply up to eight authenticated pre-existing batch expiries, including a sanctions batch, and the vault queues any remaining live balance. The recorded batches must account for the full scaled position fixed at activation.
 
-After maturity, anybody may move the series along:
+Queueing does not wait for `ST`. The maturity proof and the Wildcat withdrawal can progress in either order. Once a batch is withdrawable, anybody may execute it for the vault.
 
-1. Prove and store `ST` through the task 5 adapter.
-2. Queue the vault's complete live Wildcat balance while Wildcat can still represent the batch expiry. If the sanctions path already queued it, supply and adopt that authenticated expiry.
-3. Record every batch needed to reconstruct the scaled position minted at activation.
-4. After expiry, execute the complete available withdrawal.
-5. Require the market to be closed and the vault's contractual claim to have been collected in full.
-6. Calculate the principal slash and borrower rebate through `BRCMath`.
-7. Reserve accrued interest and unslashed principal for noteholders.
-8. Make the borrower rebate claimable, then open note redemption.
+Normal finalisation requires:
 
-These can be separate transactions. Calls are permissionless, progress only moves forwards and changing the order must not change either side's total payout.
+- a stored maturity fixing;
+- zero remaining Wildcat lender supply;
+- every recorded batch to match the vault's account status;
+- every batch to be fully burned and withdrawn;
+- the sum of recorded scaled amounts to equal the activated position; and
+- the vault balance to cover the authenticated batch proceeds above its activation baseline.
 
-## Full-performance test
+Formal closure of the otherwise empty Wildcat market is not required. Complete lender performance is the condition that matters.
 
-Use Wildcat's own accounting to prove full performance; a token balance on its own is not enough. Keep these four things separate:
+The vault calculates the principal slash from `N`, `K`, `B` and `ST`. That amount becomes the borrower rebate. Authenticated Wildcat proceeds above the rebate, including accrued interest, become the noteholder reserve. Loose token donations do not enter either amount.
 
-- principal deposited;
-- interest and other amounts owed to the vault;
-- amounts already withdrawn; and
-- unrelated assets sent to the vault.
+Noteholders burn their own notes and may choose the asset recipient. Non-final redemptions use `floor(noteholderReserve × noteAmount / N)`. The final holder receives the remaining reserve, including division dust. The borrower rebate is paid once to the borrower principal fixed at deployment.
 
-The borrower rebate becomes available only when the market is closed and the complete vault claim has been collected. A merely funded withdrawal batch is not enough.
+## Evidence
 
-## Redemption
+`test/BRCSettlement.t.sol` covers no breach, exact barrier, deep breach, interest before and after principal repayment, queueing before `ST`, incomplete performance, the 32-bit expiry boundary, multiple and pre-existing batches, sanctions withdrawals, redemption order, note transfers, donations and repeated calls.
 
-- Burn notes and pay the holder's pro-rata share of the reserved noteholder pool.
-- Use cumulative accounting so redemption order cannot create or destroy claims.
-- Give the final note burn any division dust left in the reserve.
-- Let a holder send their own redemption to another recipient. Any future delegated burn needs an allowance or signed authorisation.
+`BRCSystemInvariantTest` checks that aggregate claims do not change with ownership, call ordering or redemption order.
 
-## Tests to add
+## Boundary of this step
 
-- No breach, exact barrier and deep breach.
-- Interest accrued before and after the borrower repays principal.
-- Queueing before maturity and executing before batch expiry.
-- A funded but not closed market.
-- Multiple withdrawal batches and prior partial withdrawals.
-- A sanctions withdrawal queued and executed before the vault starts settlement.
-- Construction and runtime calls at the last safe 32-bit settlement timestamp.
-- Redemptions in every order, including transfers between settlement and redemption.
-- Repeated fixing, queue, execution, finalisation, rebate and redemption calls.
-- Direct settlement-asset transfers to the vault before finalisation.
-
-## Accounting properties
-
-- The borrower never receives accrued interest.
-- `borrowerRebate + noteholderReserve` equals the assets attributed to this settlement.
-- Total note redemptions never exceed the reserve.
-- A complete note burn makes `noteholderReserve - redeemedAssets` zero.
-
-## Not in this task
-
-If the market cannot meet the full-performance test, or the safe queue window has passed, enter no borrower rebate path. Partial recovery, stale oracle resolution and write-off belong in task 9.
+Task 08 opens the borrower rebate only after complete performance. It does not let a partly paid market use the normal waterfall. Partial recovery and oracle fallback arrived in task 09. Missing the last safe 32-bit queue time remains a terminal operational failure with no alternate onchain exit.

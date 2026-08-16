@@ -2,7 +2,9 @@
 
 ## Assets and claims
 
-The things we're protecting are subscribed USDC, the vault's Wildcat position, recovered USDC and each note token's right to its share of the settled or recovered pool.
+The things being protected are subscribed settlement assets, the vault's Wildcat position,
+recovered settlement assets and each note balance's right to its share of the settled or recovered
+pool. The example series uses USDC.
 
 The borrower rebate is conditional. It only exists after full Wildcat performance and a valid breached-barrier fixing.
 
@@ -44,7 +46,13 @@ The vault is non-upgradeable and has no general call path. Its market, asset, fe
 
 ### The borrower defaults and still receives the slash
 
-There is no rebate in recovery, even if a valid breached-barrier price already exists. The vault may queue from maturity before the BTC fixing is available, so oracle timing cannot force a funded claim into recovery. Recovery only opens after the grace period while that queued claim remains partly unpaid. A fully paid claim follows normal settlement and preserves any earned rebate. Partial Wildcat proceeds stay locked until the date fixed for write-off eligibility, then the recovered pool belongs entirely to noteholders.
+There is no rebate in recovery, even if a valid breached-barrier price already exists. The vault may
+queue from maturity before the BTC fixing is available, so oracle timing cannot force a funded
+claim into recovery. Recovery only opens after the separate contractual `recoveryDelay` while that
+queued claim remains partly unpaid; Wildcat's `delinquencyGracePeriod` is a different setting. A
+fully paid claim follows normal settlement and preserves any earned rebate. Partial Wildcat
+proceeds stay locked until the date fixed for write-off eligibility, then the recovered pool
+belongs entirely to noteholders.
 
 ### Somebody writes off recoverable value
 

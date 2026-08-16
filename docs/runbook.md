@@ -31,7 +31,9 @@ abi.encode(
 );
 ```
 
-7. Request deposit and transfer dispatch. Leave raw withdrawal access false. The fixed-term parent adds the queue, close and APR/reserve-ratio dispatch it requires.
+7. Request deposit and transfer dispatch. The fixed-term parent forces queue, close and
+   APR/reserve-ratio hook dispatch on. Keep the separate hooked-market field
+   `withdrawalRequiresAccess` false so queueing is not credential-gated.
 8. Have the borrower principal call the operational borrower account. The account checks the shared hook nonce, deploys the vault and calls `deployMarketAndHooks` atomically. Any changed nonce, principal or address reverts the whole transaction.
 9. Keep the generated record with the approved manifest. It contains the readable manifest, ABI encoding, manifest hash, calculated addresses and deployed code hashes.
 
@@ -74,8 +76,9 @@ Keep an eye on the Chainlink feed, proxy phase, deprecation notices, market liqu
 4. Have the borrower fund the Wildcat claim and close the market where practical.
 5. Execute the withdrawal after its batch expires.
 6. Confirm that the vault collected its complete claim. Formal closure of the empty market is not required for settlement.
-7. Calculate the slash and transfer the borrower rebate.
-8. Open pro-rata note redemption against the remaining USDC.
+7. Call `finalizeSettlement()` to calculate and reserve the borrower rebate and noteholder pool.
+   The borrower then calls `claimBorrowerRebate()`, which pays only the principal fixed at deployment.
+8. Open pro-rata note redemption against the remaining settlement assets.
 
 If the queued claim remains partly unpaid after the recovery grace period, enter recovery. Do not pay the borrower rebate. Missing the safe queue deadline leaves the vault unable to reach `Withdrawing` or `Recovery`; escalate that operational failure under the transaction and legal fallback plan rather than pretending the onchain recovery path remains available.
 

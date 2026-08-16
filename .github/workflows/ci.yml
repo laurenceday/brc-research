@@ -21,6 +21,8 @@ jobs:
         run: ./script/check-dependencies.sh
       - name: Check authored Markdown
         run: ./script/check-markdown.sh
+      - name: Check published payoff examples
+        run: ./script/check-primer-examples.sh
       - name: Check formatting
         run: forge fmt --check
       - name: Build

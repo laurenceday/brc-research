@@ -6,7 +6,10 @@
 2. Check the approved hooks template, hooks factory and singleton role-provider factory addresses. Record the Wildcat ArchController owner, SphereX admin, operator and current engine; these are trust inputs, and the engine can change later. Record the template's fee recipient and protocol fee as well.
 3. Check that Wildcat accepts the settlement asset, then record its address and decimals.
 4. Check the standard Ethereum mainnet Chainlink BTC/USD proxy, `description()` and `decimals()` against Chainlink's current directory.
-5. Freeze the series manifest, legal terms, note transfer policy, maturity, oracle delay, recovery grace period and write-off time. Check that the recovery start, withdrawal duration and the extra second Wildcat may need when closing a batch all fit below its 32-bit timestamp limit.
+5. Freeze the series manifest, legal terms, note transfer policy, maturity, oracle delay,
+   `recoveryDelay` and write-off time. Check that the recovery start, withdrawal duration and the
+   extra second Wildcat may need when closing a batch all fit below its 32-bit timestamp limit. Do
+   not confuse `recoveryDelay` with Wildcat's separate `delinquencyGracePeriod`.
 6. Record the fallback source identifier, waiting and challenge periods, ratifier addresses and threshold. Ratifiers must be distinct ECDSA EOAs; Safe and other contract-wallet signers are not supported by this prototype. The signing procedure must bind the chain, oracle, series, proposal, price, observation time, evidence hash and source.
 7. Run unit, fuzz, stateful accounting-property and mainnet-fork tests against the pinned commits.
 
@@ -80,7 +83,10 @@ Keep an eye on the Chainlink feed, proxy phase, deprecation notices, market liqu
    The borrower then calls `claimBorrowerRebate()`, which pays only the principal fixed at deployment.
 8. Open pro-rata note redemption against the remaining settlement assets.
 
-If the queued claim remains partly unpaid after the recovery grace period, enter recovery. Do not pay the borrower rebate. Missing the safe queue deadline leaves the vault unable to reach `Withdrawing` or `Recovery`; escalate that operational failure under the transaction and legal fallback plan rather than pretending the onchain recovery path remains available.
+If the queued claim remains partly unpaid after `maturity + recoveryDelay`, enter recovery. Do not
+pay the borrower rebate. Missing the safe queue deadline leaves the vault unable to reach
+`Withdrawing` or `Recovery`; escalate that operational failure under the transaction and legal
+fallback plan rather than pretending the onchain recovery path remains available.
 
 ## If the primary fixing is unavailable
 
@@ -95,7 +101,9 @@ If the queued claim remains partly unpaid after the recovery grace period, enter
 ## If the market defaults
 
 1. Queue the complete position at or after maturity; this does not require the BTC fixing. Include any authenticated pre-existing batch expiries.
-2. Wait for the recovery grace period. If the queued claim remains partly unpaid, call `enterRecovery()`. A fully paid claim cannot enter recovery. A valid BTC fixing does not change the default path and no borrower rebate is available there.
+2. Wait until `maturity + recoveryDelay`. If the queued claim remains partly unpaid, call
+   `enterRecovery()`. A fully paid claim cannot enter recovery. A valid BTC fixing does not change
+   the default path and no borrower rebate is available there.
 3. As Wildcat pays a batch, execute the available withdrawal into the vault. Redemptions stay closed while recoveries are still coming in.
 4. At or after the fixed write-off eligibility time, check that every recorded batch has expired, then call `finalizeRecovery()`. It executes any amount Wildcat has made withdrawable before taking the snapshot.
 5. Open note redemption against the recovered pool. The call is permissionless; later Wildcat payments and unsolicited transfers do not enlarge the pool.

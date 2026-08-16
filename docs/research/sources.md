@@ -54,6 +54,7 @@ change; every proposed series needs a new address, status, interface and rights 
 | [Pyth update fetching](https://docs.pyth.network/price-feeds/core/fetch-price-updates) | Hermes fetch-and-submit model | First-party technical documentation |
 | [RedStone Pull](https://docs.redstone.finance/docs/dapps/redstone-pull/) | Signed transaction payload integration and service/signer selection | First-party technical documentation |
 | [RedStone Push](https://docs.redstone.finance/docs/dapps/redstone-push/) | Relayer, heartbeat/deviation and Chainlink-like facade design | First-party technical documentation |
+| [RedStone Live](https://docs.redstone.finance/docs/dapps/redstone-live-feeds/) | Offchain streamed coverage described for traditional and crypto market classes | First-party technical documentation |
 | [Chronicle consumer guide](https://docs.chroniclelabs.org/Developers/tutorials/Remix) | Read protection, value/age interface and production-access requirement | First-party technical documentation |
 | [API3 data feeds](https://docs.api3.org/oev/in-depth/data-feeds/) | dAPI, beacon/beacon-set, proxy and update model | First-party technical documentation |
 | [UMA oracle overview](https://docs.uma.xyz/protocol-overview/how-does-umas-oracle-work) | Bonded optimistic assertion, dispute and DVM model | First-party technical documentation |

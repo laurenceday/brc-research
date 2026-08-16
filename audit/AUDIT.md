@@ -57,3 +57,34 @@ authored-Markdown check.
 
 Leads not pursued: the documents do not price the option or make suitability, tax or legal claims.
 Those decisions require a real counterparty, jurisdiction, series and professional advice.
+
+## Step 3, round 1 -- 16 August 2026
+
+This round reviewed commit `63fec9b2209cb1eb2caa17233e32728d40bd1a73`. It compared every
+compatibility label with the current oracle interface, checked the BTC/USD round rules against
+`BtcUsdFixingOracle.sol`, and opened the cited first-party provider and index-rights pages.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| S3-R1-01 | low | `docs/research/reference-assets-and-oracles.md`, `docs/research/sources.md` | The dated QQQ/SPY and RedStone Live catalogue claims did not have an adjacent first-party source. A reader could not distinguish verified catalogue evidence from a broad provider summary. | fixed on the step audit branch |
+
+Leads not pursued: no provider contract, private catalogue or commercial entitlement was
+available. Candidate labels therefore remain discovery evidence rather than security or
+availability findings. The step changed no Solidity, so a Solidity audit and new fuzz harness were
+not applicable.
+
+## Step 3, round 2 -- 16 August 2026
+
+This round reviewed the fixed tree at
+`44d7e4199f55b9ca48a65ecac092c5a5a783910f`. It repeated the source-adjacency and compatibility
+searches, checked every candidate table for an explicit status label, and reran the dependency,
+payoff-vector, 229-test, authored-Markdown and prose gates.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| -- | -- | -- | No finding. | clean |
+
+Leads not pursued: address-level inspection was limited to the three named Ethereum Chainlink Data
+Feeds. Every other provider or asset remains a catalogue candidate or inquiry, and the report says
+so at each decision point. A real series still needs source-specific technical, commercial and
+legal review.

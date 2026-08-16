@@ -1,22 +1,26 @@
-# The BTC barrier note in one page
+# BTC barrier note: one-page brief
+
+![Abstract fixed-term credit note with one reference-price trigger](assets/one-loan-one-trigger.png)
 
 This is a discussion sheet for the research prototype. It is not an offer, recommendation, price,
 tax analysis or claim that a live series is ready.
 
 ## The trade
 
-Investors fund a fixed-term borrower through one note issuer. They receive notes, not direct
-facility positions. The issuer holds the whole lender position and applies a BTC/USD-linked cash
-payoff at maturity.
+**One borrower. One facility. One crash trigger.**
+
+Investors fund a fixed-term borrower through one note issuer. They receive notes, not direct facility
+positions. The issuer holds the whole lender position and applies a BTC/USD-linked cash payoff at
+maturity.
 
 The economic exchange is simple:
 
-- the lender takes borrower credit risk and sells the borrower a BTC downside put;
+- investors take borrower credit risk and sell the borrower a BTC downside put;
 - the borrower pays the lender return and may earn a cash rebate if BTC finishes at or
   below the barrier; and
 - the borrower receives that rebate only after the facility claim has been paid completely.
 
-The lender gets no BTC upside. Borrower default does not create a rebate.
+Investors get no BTC upside. Borrower default does not create a rebate.
 
 ## The implemented example
 
@@ -83,9 +87,10 @@ illiquidity and operating risk. It is not “BTC yield” and cannot be assessed
 
 The contracts and operating material are a research prototype. There is no external audit, legal
 sign-off, approved manifest, index licence, live deployment or secondary market. Read the
-[worked example](worked-example.md), [primer](../primer.md), [lender brief](lender-brief.md),
-[borrower brief](borrower-brief.md) and [reference-asset survey](../research/reference-assets-and-oracles.md)
-before turning a discussion into proposed terms.
+[BD field kit](README.md), [worked example](worked-example.md), [primer](../primer.md),
+[lender brief](lender-brief.md), [borrower brief](borrower-brief.md) and
+[reference-asset survey](../research/reference-assets-and-oracles.md) before turning a discussion
+into proposed terms.
 
 Choose the lender or borrower route from those links; do not use this page by itself for diligence
 or approval.

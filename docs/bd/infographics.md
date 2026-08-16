@@ -1,100 +1,56 @@
-# BRC infographic sourcebook
+# Deal diagrams
 
-These diagrams are editable meeting aids for BD and credit discussions. They explain the economic
-relationships in the research prototype. They are not legal structure charts, transaction
-confirmations or evidence that a series is ready.
+These are screen-ready pictures and editable source notes for BD and credit discussions. The images
+set the mood; exact labels, numbers and disclaimers belong in Markdown or the deck layer.
 
-Keep exact terms, addresses, dates and disclaimers as editable text. Use wide slides, generous
-margins and one idea per frame. The palette is Bunker `#141414`, Black Rock `#30313E`, Manatee
-`#8A8C9F`, Athens Grey `#EFF0F4`, white, Ultramarine Blue `#3E68FF`, Purple Heart `#4D26BC`, Dull
-Red `#C24647` and Galliano `#D7A820`. Use red only for loss or recovery stress.
+This is not a legal structure chart, transaction confirmation or evidence that a series is ready.
 
-Use generated bitmap assets for mood panels and story beats, not for exact maths. Generated images
-must not contain words, numerals, tickers, addresses, logos or watermarks. Add every label and
-number in the deck layer. A sample three-path panel is checked in at
-[worked-example-paths.png](assets/worked-example-paths.png).
+## One loan, one trigger
 
-## 1. The cash-credit trade
+![Abstract fixed-term credit note with one reference-price trigger](assets/one-loan-one-trigger.png)
 
-Open with the commercial structure. Wildcat is the accounting route inside the prototype, not the
-first thing the room needs to understand.
+Use this as the opener. Say: “investors fund the borrower through one note issuer; the reference
+price only decides the maturity waterfall after the borrower has performed.”
 
-```mermaid
-flowchart LR
-  I[Investors] -->|cash funding| N[Note issuer and vault]
-  N -->|single lender position| F[Fixed-term credit facility]
-  F -->|loan proceeds| B[Borrower]
-  B -->|repayment| F
-  F -->|collected cash| N
-  N -->|note redemption| I
-  N -->|rebate after full payment and breach| B
-  R[Reference price] -->|maturity observation| N
-```
+Suggested labels:
 
-Room note: “Investors fund a fixed-term borrower and sell a defined piece of reference-price
-downside. The borrower pays the facility before any reference-linked rebate can be made.”
+- Investors fund the note.
+- Note issuer holds the lender position.
+- Borrower repays the facility.
+- One maturity reference price controls the rebate.
 
-## 2. The barrier cliff
+## Barrier cliff
 
-The barrier is a trigger, not the point from which loss is measured.
+![Three-path barrier illustration](assets/barrier-cliff.png)
 
-```mermaid
-flowchart LR
-  A[ST above barrier] -->|no slash| P[Collected proceeds stay with notes]
-  B[ST one unit above barrier] -->|still no slash| P
-  C[ST equals barrier] -->|breach| D[Slash measured from strike]
-  E[ST below barrier] -->|larger slash| F[Up to all face at ST zero]
-```
+Use this before discussing return. The point is the cliff: `60,001` is no breach; `60,000` breaches;
+the loss is measured from the `100,000` strike.
 
-Use these editable callouts beside the figure:
+Editable callouts:
 
 | Maturity BTC/USD | Barrier result | Borrower rebate | Noteholder pool |
 | ---: | --- | ---: | ---: |
-| 60,001 | No breach | 0 | 1,030,000 |
-| 60,000 | Breach | 400,000 | 630,000 |
+| `60,001` | No breach | `0` | `1,030,000` |
+| `60,000` | Breach | `400,000` | `630,000` |
 
 The example assumes `N = 1,000,000`, `K = 100,000`, `B = 60,000` and total authenticated proceeds
-of `1,030,000`. The proceeds are a round payoff input rather than an APR accrual calculation.
-Equality breaches. The [worked example](worked-example.md) gives the complete talk track.
+of `1,030,000`. Equality breaches.
 
-## 3. Four commercial outcomes
+## Happy, neutral and catastrophic paths
 
-These are economic outcomes rather than contract states.
+![Three scenario panels for the BTC barrier note](assets/worked-example-paths.png)
 
-```mermaid
-flowchart TB
-  S[Same note terms] --> H[Reference rises; borrower pays]
-  S --> T[Reference finishes one unit above barrier; borrower pays]
-  S --> C[Reference falls to zero; borrower pays]
-  S --> D[Borrower defaults]
-  H --> H1[Notes receive all collected cash]
-  T --> T1[Notes receive all collected cash]
-  C --> C1[Face is rebated; notes retain collected excess]
-  D --> D1[No rebate; notes receive the recovery pool]
-```
+Use this with [the worked example](worked-example.md). Keep the three conversations separate:
 
-Keep the crash and default branches separate. Full borrower performance enables the reference-
-linked rebate. Default disables it.
+| Path | Room read |
+| --- | --- |
+| Happy | BTC finishes above the barrier and the borrower pays. Notes receive the collected cash. |
+| Neutral | BTC finishes one unit above the barrier and the borrower pays. Still no rebate. |
+| Catastrophic | BTC falls hard. If the borrower pays, the BTC rebate can consume face. If the borrower defaults, no rebate is paid. |
 
-Suggested image prompt:
+## Settlement and recovery
 
-```text
-Use case: productivity-visual
-Asset type: 16:9 three-panel scenario illustration, no embedded text
-Primary request: Three adjacent institutional finance panels showing the same credit note through
-happy, neutral and catastrophic market paths. Panel one is calm and fully paid, panel two is tight
-but still performing, panel three is stressed with a broken price line and reduced cash pool.
-Style: Wildcat brand, editorial line art, light background, Ultramarine Blue for happy, Galliano
-for neutral, Dull Red for catastrophic, thin Bunker strokes and pale Black Haze cards.
-Composition: Three equal vertical panels with empty label space above each; abstract ledgers, cash
-pools and reference-price lines; sparse and professional.
-Avoid: embedded text, letters, words, numerals, logos, watermarks, coins, exchange screens,
-blockchain nodes, glowing networks and photoreal bankers.
-```
-
-## 4. Normal settlement and recovery
-
-This figure explains where collected cash goes.
+This figure is still better as editable source because the labels carry the legal/economic meaning.
 
 ```mermaid
 flowchart TB
@@ -104,14 +60,14 @@ flowchart TB
   C -->|Yes| E[Face-linked rebate to fixed borrower recipient]
   E --> F[Remaining proceeds to note pool]
   B -->|No, after recovery gates| G[Collect available recorded batches]
-  G --> H[Snapshot all collected cash to note pool]
+  G --> H[Snapshot collected cash to note pool]
   H --> I[Borrower rebate fixed at zero]
 ```
 
 Room note: “A default cannot earn the borrower a rebate. It leaves noteholders with the fixed
 recovery pool.”
 
-## 5. Reference and data-rights selection
+## Reference and data-rights selection
 
 Use this before discussing a new asset or index.
 
@@ -132,9 +88,10 @@ flowchart TD
 Technical availability and permission to settle a financial product are separate questions. The
 current code implements the Ethereum Chainlink BTC/USD AggregatorV3 route only.
 
-## 6. The risk exchange
+## Risk exchange
 
-This is the credit-committee view of the trade.
+The shorthand is unsecured borrower credit plus a put sold by investors. A return discussion that
+omits either exposure is incomplete.
 
 ```mermaid
 flowchart LR
@@ -156,10 +113,28 @@ flowchart LR
   I4 --- B4
 ```
 
-The shorthand is unsecured borrower credit plus a put sold by investors. A return discussion that
-omits either exposure is incomplete.
+## Image generation prompts
 
-Suggested image prompt:
+Use generated bitmap assets for mood panels and story beats, not exact maths. Generated images must
+not contain words, numerals, tickers, addresses, logos or watermarks.
+
+### Scenario panel prompt
+
+```text
+Use case: productivity-visual
+Asset type: 16:9 three-panel scenario illustration, no embedded text
+Primary request: Three adjacent institutional finance panels showing the same credit note through
+happy, neutral and catastrophic market paths. Panel one is calm and fully paid, panel two is tight
+but still performing, panel three is stressed with a broken price line and reduced cash pool.
+Style: Wildcat brand, editorial line art, light background, Ultramarine Blue for happy, Galliano
+for neutral, Carmine Pink for catastrophic, thin Bunker strokes and pale rounded cards.
+Composition: Three equal vertical panels with empty label space above each; abstract ledgers, cash
+pools and reference-price lines; sparse and professional.
+Avoid: embedded text, letters, words, numerals, logos, watermarks, coins, exchange screens,
+blockchain nodes, glowing networks and photoreal bankers.
+```
+
+### Risk-exchange prompt
 
 ```text
 Use case: productivity-visual
@@ -167,7 +142,7 @@ Asset type: 16:9 institutional risk-exchange illustration, no embedded text
 Primary request: An abstract bilateral finance visual showing investors on one side, a borrower on
 the other, and two exchanged legs: credit funding and reference-asset downside. Use ledger cards,
 arrows and a small reference-price panel.
-Style: Wildcat brand, Black Haze background, Bunker linework, Blue Ribbon for funding, Dull Red for
+Style: Wildcat brand, pale background, Bunker linework, Blue Ribbon for funding, Carmine Pink for
 downside, restrained finance editorial style.
 Composition: Two large zones with clean space for overlaid bullet labels.
 Avoid: DeFi protocol diagrams, token icons, words, numerals, people shaking hands, logos and neon.
@@ -175,12 +150,12 @@ Avoid: DeFi protocol diagrams, token icons, words, numerals, people shaking hand
 
 ## Use in a meeting
 
-1. Start with the cash-credit trade.
+1. Start with one loan, one trigger.
 2. Show the barrier cliff before discussing return.
-3. Walk the four outcomes with the same numbers.
+3. Walk the happy, neutral and catastrophic paths with the same numbers.
 4. Use the settlement figure to separate full performance from default.
 5. Use the source-selection figure before naming a new reference.
-6. Finish with the risk exchange and the prototype status.
+6. Finish with the risk exchange and prototype status.
 
 Pair any extracted figure with the [one-page](one-page.md), [worked example](worked-example.md) and
 [FAQ](faq.md). Keep “research prototype; no external audit, legal approval or live series” on the

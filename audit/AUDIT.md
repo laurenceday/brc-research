@@ -137,3 +137,18 @@ Leads not pursued: the final documentation run does not claim an RPC-backed rele
 audit, legal approval or current rights to a new reference asset. The visual source contains no image
 assets or character art; its ten Mermaid diagrams remain plain technical figures. No Solidity changed,
 so a new Solidity audit or fuzz harness was not applicable to this diff.
+
+## Step 5, round 2 -- 16 August 2026
+
+This round reviewed the complete audit tree after the round-1 record was added. It reran the dependency,
+six-vector payoff, 33-file Markdown and ten-diagram checks, then ran Proscribed and Imprimatur across
+all 33 authored files. Every file scored 100/100 with no listed hits. The reader routes still ended at
+the same code-backed terms and release blockers.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| -- | -- | -- | No finding. | clean |
+
+Leads not pursued: the current 229-pass Foundry result was already rerun on the implementation commit;
+the audit branch changed only this log. The opt-in mainnet-fork test remains skipped in that result, and
+the separate 15 August fork exercise remains qualified in `docs/validation-evidence.md`.

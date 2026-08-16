@@ -11,17 +11,14 @@ mainnet deployment or independent operational rehearsal has been completed.
 
 The production-contract baseline is
 `efb880e3d79ba12709d68c850b9321eeb19d7cfb` (`feat: add reproducible BRC deployment tooling`). The
-documentation work began from integrated repository baseline
-`9b97787927ee2f9fab2907a9d3762862133fd5cd`. Later documentation commits do not change the
-production contracts. A release commit has not been selected. Each deployment
-manifest must replace
-`SET_TO_REVIEWED_COMMIT` with the release commit reviewed by the borrower, investors and external
-auditor.
+subsequent repository changes are documentation, tests or repository maintenance unless the final
+release diff says otherwise. A release commit has not been selected. Each deployment manifest must
+replace `SET_TO_REVIEWED_COMMIT` with the release commit reviewed by the borrower, investors and
+external auditor.
 
 | Component | Pin or identity | Review consequence |
 | --- | --- | --- |
 | BRC application contracts | `efb880e3d79ba12709d68c850b9321eeb19d7cfb` | Exact production-code baseline for this packet |
-| Documentation starting point | `9b97787927ee2f9fab2907a9d3762862133fd5cd` | Merged repository baseline from which the research and BD documentation stack began |
 | Wildcat v2 protocol | `99bb85840a77a56fa5f64504a60ec126b6047cf5` | Submodule commit containing the market, factories, fixed-term hook, provider, sanctions and SphereX code |
 | forge-std | `467ffd422ca01fed5797a4c766a1e4e3a5327902` | Test and script dependency; not deployed as series logic |
 | Chainlink contracts source reference | `f82d1ac09fc5d3190600d308be99a4a509854686` | Provenance recorded for the locally copied interface |

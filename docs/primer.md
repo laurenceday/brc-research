@@ -1,17 +1,17 @@
-# A practical primer on the Wildcat BTC barrier reverse convertible
+# A practical primer on the BTC barrier reverse convertible prototype
 
-This is the quickest route from “what is a BRC?” to the prototype in this repository. It explains
-the code; it is not an offer, recommendation, tax opinion or statement that the contracts are ready
-for production.
+This is the quickest route from “what is a BRC?” to the prototype in this repository. It starts
+with the commercial shape, then explains how the code implements it. It is not an offer,
+recommendation, tax opinion or statement that the contracts are ready for production.
 
 ## The trade
 
-Investors lend a settlement asset through one vault. The vault is the only direct lender in a
-fixed-term Wildcat market. Investors receive vault note balances rather than Wildcat market tokens.
+Investors fund a fixed-term borrower through one note issuer. The issuer is the only direct lender
+in the underlying credit facility. Investors receive note balances rather than facility positions.
 
-The borrower pays the Wildcat lender return. In exchange for a higher funding cost than plain debt
-might carry, the borrower can receive a rebate at maturity if BTC/USD finishes at or below the
-barrier. The rebate reduces what noteholders receive from a completely paid Wildcat claim.
+The borrower pays the lender return. In exchange for a higher funding cost than plain debt might
+carry, the borrower can receive a rebate at maturity if BTC/USD finishes at or below the barrier.
+The rebate reduces what noteholders receive from a completely paid facility claim.
 
 Economically, the lender holds borrower credit and sells the borrower a BTC put. The lender gets no
 BTC upside. The borrower gets no rebate merely by defaulting.
@@ -23,27 +23,28 @@ BTC upside. The borrower gets no rebate merely by defaulting.
 | Settlement asset | USDC in the example manifest; the contract checks the configured ERC-20 |
 | Face notional, `N` | 1,000,000 USDC |
 | Term | 90 days |
-| Wildcat APR | 12%, encoded as 1,200 bips |
+| Lender return | 12% APR test input, encoded as 1,200 bips |
 | Initial fixing and strike, `K` | Chainlink BTC/USD `S0` recorded at vault deployment |
 | Barrier, `B` | 60% of `S0` |
 | Maturity fixing, `ST` | First valid Chainlink BTC/USD proxy round at or after maturity within the allowed window |
 | Observation style | European: one maturity observation |
 | Breach rule | `ST <= B`; equality is a breach |
 | Settlement | Cash in the settlement asset |
-| Direct Wildcat lender | The vault only |
+| Direct facility lender | The vault only |
 
-The deployable manifest requires a full raise. The current oracle adapter is the Ethereum Chainlink
-BTC/USD AggregatorV3 proxy. Changing the asset or oracle product takes new code and review; it is not
-a manifest switch.
+The deployable manifest requires a full raise. The current implementation uses a fixed-term
+Wildcat market for the credit facility and the Ethereum Chainlink BTC/USD AggregatorV3 proxy for
+the reference price. Changing the asset or oracle product takes new code and review; it is not a
+manifest switch.
 
 ## Who does what
 
 | Party | Job | Exposure or authority |
 | --- | --- | --- |
 | Noteholder | Supplies funding and owns notes | Borrower credit, BTC downside, liquidity, oracle and recovery risk |
-| Vault | Holds the complete Wildcat lender position | Applies fixed funding, payoff, settlement and recovery rules |
-| Borrower account | Deploys the bound vault and market, then operates the Wildcat borrower | Owes the Wildcat claim and receives any normal-settlement rebate at the fixed recipient |
-| Wildcat market | Accounts for debt, interest, repayment and withdrawal batches | External protocol, fee, sanctions and SphereX assumptions |
+| Vault / issuer | Holds the complete lender position | Applies fixed funding, payoff, settlement and recovery rules |
+| Borrower account | Deploys the bound vault and market, then operates the borrower side | Owes the facility claim and receives any normal-settlement rebate at the fixed recipient |
+| Credit facility | Accounts for debt, interest, repayment and withdrawal batches | External protocol, fee, sanctions and SphereX assumptions in the prototype |
 | Chainlink proxy | Supplies the primary `S0` and `ST` evidence | Feed availability, phase history and administrator assumptions |
 | Fallback ratifiers | Approve a delayed price only if the primary path remains unavailable | Immutable ECDSA EOA set; threshold approval and one-ratifier veto |
 | Keepers | Call permissionless lifecycle functions | Cannot choose the fixing, payout recipient or amount |
@@ -70,7 +71,9 @@ receiving the remaining dust.
 ### Worked full-performance outcomes
 
 Assume `N = 1,000,000 USDC`, `K = 100,000`, `B = 60,000` and authenticated Wildcat proceeds
-`P = 1,030,000 USDC`.
+`P = 1,030,000 USDC`. `P` is a round payoff input, not the result of applying the 12% APR row to
+exactly 90 days. Live proceeds depend on elapsed seconds, market state changes, fees and any
+delinquency.
 
 | `ST` | Barrier result | Principal slash / borrower rebate | Noteholder pool | Meaning |
 | ---: | --- | ---: | ---: | --- |
@@ -82,6 +85,9 @@ Assume `N = 1,000,000 USDC`, `K = 100,000`, `B = 60,000` and authenticated Wildc
 
 This is the barrier cliff. The result moves from no slash at `60,001` to a 40% face slash at
 `60,000`. A prospective lender needs to see that before discussing APR.
+
+For a meeting-room walkthrough of happy, neutral and catastrophic paths, use the [BD worked
+example](bd/worked-example.md). It tells the same maths without leading with implementation.
 
 ### A rounding example
 
@@ -127,7 +133,7 @@ window. Normal finalisation still waits for the stored fixing. Recovery does not
 
 ## What the return is paying for
 
-The Wildcat APR is not free yield. A lender is accepting several exposures at once:
+The lender return is not free yield. A lender is accepting several exposures at once:
 
 - **Borrower credit:** the note depends on the Wildcat borrower paying the lender claim.
 - **Short BTC put:** a barrier breach can remove up to all face principal after full performance.

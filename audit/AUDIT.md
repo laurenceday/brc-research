@@ -122,7 +122,7 @@ so a new Solidity audit or fuzz harness was not applicable to this step.
 
 ## Step 5, round 1 -- 16 August 2026
 
-This round reviewed implementation commit `85bb8dfe150459a6feb753ba0346a2ed7244a40e` as three readers:
+This round reviewed implementation commit `3cc44c931d49f923eff174716ba8adcd716c30f0` as three readers:
 an external contract reviewer, a prospective lender and a prospective borrower. It checked the 33-file
 inventory, every local link, the implementation-history boundary, the normal and recovery conditions,
 the oracle compatibility labels, and every new route between documents. It also rechecked upstream

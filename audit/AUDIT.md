@@ -28,3 +28,32 @@ gate and ran Imprimatur across all 23 authored Markdown files.
 
 Leads not pursued: external-link and rendered-diagram checks remain assigned to step 5. No Solidity
 changed in this step, so Solidity audit and fuzz-suite generation were not applicable to this diff.
+
+## Step 2, round 1 -- 16 August 2026
+
+This round reviewed commit `7b8931ddf3e611f00b4f2cde57408576bf9e1201`. It checked the six
+published payoff vectors against `BRCMath.sol`, compared the lifecycle and recovery examples with
+`BRCNoteVault.sol`, opened the cited sources, and reviewed every return, tax and product-origin
+statement for scope.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| S2-R1-01 | low | `README.md` | The payoff summary called the Wildcat lender yield fixed. `SingletonFixedTermHooks` freezes APR and reserve ratio only until maturity, while actual payment remains subject to borrower performance and settlement. | fixed on the step audit branch |
+
+Leads not pursued: automated requests to the cited SEC pages receive `403` responses, but the pages
+were opened and read through the browser. The research source index records that access limitation.
+The step changed no Solidity, so a new Solidity audit or fuzz harness was not applicable.
+
+## Step 2, round 2 -- 16 August 2026
+
+This round reviewed the fixed tree at
+`3279ba78d720a9ea9d422e32dfe0a45e8640e61a`. It repeated the historical-attribution, tax-language
+and return-claim searches, ran all six published vectors, and reran the 229-test CI profile and
+authored-Markdown check.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| -- | -- | -- | No finding. | clean |
+
+Leads not pursued: the documents do not price the option or make suitability, tax or legal claims.
+Those decisions require a real counterparty, jurisdiction, series and professional advice.

@@ -88,7 +88,7 @@ Style: Wildcat brand, editorial line art, light background, Ultramarine Blue for
 for neutral, Dull Red for catastrophic, thin Bunker strokes and pale Black Haze cards.
 Composition: Three equal vertical panels with empty label space above each; abstract ledgers, cash
 pools and reference-price lines; sparse and professional.
-Avoid: embedded text, letters, words, numerals, logos, watermarks, coins, cats, exchange screens,
+Avoid: embedded text, letters, words, numerals, logos, watermarks, coins, exchange screens,
 blockchain nodes, glowing networks and photoreal bankers.
 ```
 

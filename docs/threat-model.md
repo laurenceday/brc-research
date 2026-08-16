@@ -93,3 +93,6 @@ The vault checks the fee recipient and protocol fee before activation. After tha
 - Settlement timing cannot change the accepted maturity round.
 - Recovery never creates a borrower rebate.
 - A fallback fixing needs the deployed threshold and survives no ratifier veto.
+
+The [review packet](review-packet.md) turns these assumptions into review scope and release blockers.
+The [operator checklists](operations-checklists.md) assign the controls that code cannot supply.

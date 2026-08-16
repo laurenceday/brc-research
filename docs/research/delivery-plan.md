@@ -1,10 +1,12 @@
-# Delivery runbook: current code, researched product, usable BD package
+# Delivery record: current code, researched product, usable BD package
 
-The five pull requests form one stack from `main` at
-`9b97787927ee2f9fab2907a9d3762862133fd5cd`. Each step keeps the Solidity behaviour unchanged.
-The contracts remain a research prototype throughout this run.
+Status: completed as a five-step draft pull-request stack on 16 August 2026. The stack began at
+`main` commit `9b97787927ee2f9fab2907a9d3762862133fd5cd`. It changed documentation, examples and checks, not
+Solidity behaviour. The contracts remain a research prototype.
 
 ## Step 1: reconcile the implementation and documentation baseline
+
+**Status.** Completed.
 
 **Goal.** Make the repository describe the code that is already present and preserve the Fiat study
 and delivery plan as reviewable repository documents.
@@ -29,6 +31,8 @@ deployment text against `BRCBorrowerAccount.deploySeries()` and `BRCDeploymentVe
 
 ## Step 2: add the instrument history and practical primer
 
+**Status.** Completed.
+
 **Goal.** Give a professional reader a sourced account of reverse convertibles and a worked guide to
 the exact example implemented here.
 
@@ -50,18 +54,20 @@ checks.
 
 ## Step 3: map reference assets and onchain oracle routes
 
+**Status.** Completed.
+
 **Goal.** Separate what the BTC/USD adapter supports now from the asset and data-source choices that
 would require a new adapter, source contract, commercial agreement or market convention.
 
 **Entry.** The step-2 branch and its primer vocabulary.
 
-**Exit.** `docs/research/oracle-landscape.md` contains an as-of date, research method, Chainlink
+**Exit.** `docs/research/reference-assets-and-oracles.md` contains an as-of date, research method, Chainlink
 product and feed catalogue, alternative-provider comparison, asset-class matrix, market-hours and
 corporate-action analysis, index/data-rights warnings, source-selection scorecard and questions for
 providers. Each row is labelled implemented, address-verified candidate, catalogue candidate or
 inquiry only. The example BTC/USD address remains the only implemented primary source.
 
-**Files.** `docs/research/oracle-landscape.md`, the research source index, `README.md`, and any
+**Files.** `docs/research/reference-assets-and-oracles.md`, the research source index, `README.md`, and any
 checked machine-readable feed snapshot that can be reproduced without credentials.
 
 **Tests.** Recheck all time-sensitive source claims against primary vendor documentation on the day
@@ -69,6 +75,8 @@ of the PR. Confirm that no unimplemented source is described as manifest-configu
 Markdown/link and prose checks.
 
 ## Step 4: build the lender, borrower and discovery package
+
+**Status.** Completed.
 
 **Goal.** Equip BD to explain the product to either side, ask for the information needed to design a
 series, and leave a balanced written record after the call.
@@ -94,6 +102,9 @@ another document.
 
 ## Step 5: cold-read every Markdown file and run the reader paths
 
+**Status.** Completed on the final implementation and audit branches; the validation record names
+the checks and evidence limits.
+
 **Goal.** Rewrite the entire authored Markdown set in one consistent Fiat register and prove the
 technical, lender and borrower reading paths work from a clean checkout.
 
@@ -117,3 +128,6 @@ repeatable checks.
 Imprimatur over the complete authored set, diagram validation, `git diff --check`, and a manual
 cold-read checklist. Record exact counts and skipped external exercises; do not carry forward old
 evidence as if it ran against the final tree.
+
+The [project study](project-study.md) preserves the starting diagnosis. The [validation
+record](../validation-evidence.md) is the current evidence source.

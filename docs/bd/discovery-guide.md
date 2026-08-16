@@ -169,3 +169,6 @@ After the meeting, send one page containing:
 8. the next evidence owner and date.
 
 Label it “discussion record, not terms”. Do not fill a missing answer with the repository example.
+
+After the call, test the record against the [reference-asset survey](../research/reference-assets-and-oracles.md)
+and the [external review packet](../review-packet.md). A missing owner, source or legal answer stays open.

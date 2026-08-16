@@ -70,3 +70,6 @@ redemption stays shut while recoveries arrive. After the fixed write-off eligibi
 expiry, finalisation pulls every amount then withdrawable, reserves the result for noteholders, sets
 the borrower rebate to zero and opens `Redeemable`. Anything arriving after finalisation is outside
 the pool.
+
+Next, read the [threat model](threat-model.md) for the failure assumptions and the [review
+packet](review-packet.md) for the full audit boundary.

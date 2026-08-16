@@ -116,3 +116,6 @@ that rebate only after the Wildcat claim is paid completely.”
 
 The [product terms](../product-terms.md), [oracle survey](../research/reference-assets-and-oracles.md)
 and [runbook](../runbook.md) give the contract and operating detail behind that sentence.
+
+Use the [discovery guide](discovery-guide.md) to record the borrower's actual hedge, funding and
+governance requirements before anyone changes the example terms.

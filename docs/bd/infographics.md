@@ -119,3 +119,8 @@ should reduce the discussion to headline APR.
 - Keep “BTC/USD implemented; all other sources require review” on any extracted slide.
 - Keep the prototype status and missing external audit, legal approval and live series on the final
   slide or follow-up page.
+- Keep the graphics typographic and diagrammatic. Do not add mascots, animal imagery or decorative
+  character art.
+
+Pair any extracted diagram with the exact terms in the [one-page](one-page.md) and the limitations
+in the [FAQ](faq.md); the picture is not a standalone offer document.

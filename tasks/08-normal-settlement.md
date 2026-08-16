@@ -32,3 +32,5 @@ Noteholders burn their own notes and may choose the asset recipient. Non-final r
 ## Boundary of this step
 
 Task 08 opens the borrower rebate only after complete performance. It does not let a partly paid market use the normal waterfall. Partial recovery and oracle fallback arrived in task 09. Missing the last safe 32-bit queue time remains a terminal operational failure with no alternate onchain exit.
+
+Next implementation record: [Task 09, default and fallback](09-default-and-fallback.md).

@@ -26,3 +26,5 @@ Anybody may submit the proof and pay the gas. Waiting for a later favourable ans
 ## Boundary of this step
 
 Task 05 added no committee override. A sparse, retired or unreadable history can leave the primary route stuck. Task 09 added a delayed and contestable fallback without weakening the ordinary proof.
+
+Next implementation record: [Task 06, note funding](06-note-funding.md).

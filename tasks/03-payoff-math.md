@@ -29,3 +29,5 @@ The library contains helpers for barrier derivation, breach detection, principal
 ## Boundary of this step
 
 Task 03 added no state transitions, note token, Chainlink read, Wildcat deposit or asset transfer. Later tasks decide when the arithmetic can be used and which party receives each amount.
+
+Next implementation record: [Task 04, oracle foundation](04-oracle-foundation.md).

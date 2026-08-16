@@ -104,3 +104,6 @@ MAINNET_RPC_URL="$MAINNET_RPC_URL" \
 ```
 
 It checks the current Ethereum mainnet BTC/USD proxy, then deploys and registers the pinned factory and singleton fixed-term template artefacts on the fork. No RPC URL or credential is written to the manifest, record or command output.
+
+Use the [runbook](runbook.md) for execution order and the [operator checklists](operations-checklists.md)
+for evidence ownership. These commands do not replace either document.

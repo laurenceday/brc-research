@@ -160,3 +160,6 @@ must not operate the rehearsal or approve their own evidence.
 | [ ] | Release lead | Before funding; 20 minutes | Confirm deployment, independent verification and evidence sealing are complete with no unresolved mismatch. | Signed funding gate record. | Any mismatch is a funding blocker. |
 | [ ] | Funding operator | Before activation; 20 minutes | Confirm the full raise, backing reconciliation, live verifier and activation checks are complete before the deadline. | Signed activation gate record. | Incident commander; use cancellation/refunds rather than weakening checks. |
 | [ ] | Incident commander | At maturity readiness review; 30 minutes | Confirm primary and backup keepers, proof sources, communications coverage and recovery/fallback contacts are ready. | Signed maturity-readiness record. | Release lead, borrower principal and legal/compliance owner. |
+
+Return every completed checklist and evidence hash to the [external review packet](review-packet.md).
+An unchecked release blocker is a stop condition, not an invitation to improvise around the contracts.

@@ -52,3 +52,5 @@ The opt-in mainnet fork test checks the live Ethereum BTC/USD proxy and deploys 
 ## Boundary of this step
 
 `config/series.example.json` remains a template with zero addresses, zero hashes, zero timestamps and a placeholder BRC commit. It cannot approve or deploy a real series unchanged. A release still needs reviewed live addresses, a signed manifest, a deployment record and independent verifier output.
+
+Next implementation record: [Task 11, security validation](11-security-validation.md).

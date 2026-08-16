@@ -1,8 +1,12 @@
 # Study: bring the BRC prototype and its public explanation into the same state
 
+Status: starting-state study, completed 16 August 2026. Statements about stale documentation below
+describe the repository before the five-step documentation stack. The current entry point is the
+[README](../../README.md), and the current test record is [validation evidence](../validation-evidence.md).
+
 ## Problem statement
 
-This repository contains a working research prototype for a cash-settled, BTC/USD-linked
+At the start of this work, the repository contained a working research prototype for a cash-settled, BTC/USD-linked
 barrier reverse convertible built around a fixed-term Wildcat market. The code is ahead of the
 repository's opening explanation in at least three concrete places. The README still introduces an eleven-PR build
 plan after all eleven PRs have merged, several task records describe tests and functions in the
@@ -19,7 +23,7 @@ The work has two audiences.
    vocabulary and oracle context to hold a useful first meeting with a lender or borrower without
    presenting research code as a production product.
 
-A working result means all repository Markdown agrees with commit
+A working result meant that all repository Markdown agreed with commit
 `9b97787927ee2f9fab2907a9d3762862133fd5cd`; a new reader can start with the README and reach the
 technical, commercial and operating material without guessing which page is current; and the BD
 package answers four questions plainly:
@@ -47,7 +51,7 @@ The code gate for the starting commit is `FOUNDRY_PROFILE=ci forge test --summar
 opt-in mainnet-fork test. The run hydrated the pinned git submodules and created an untracked
 `foundry.lock`; that generated file is not part of the reviewed starting commit.
 
-## What exists now
+## What existed at the starting point
 
 ### Product and lifecycle
 
@@ -143,7 +147,7 @@ delegatecall route or asset sweep. It still depends on live external powers: Wil
 SphereX, the borrower identity registry, Chainlink feed operation, sanctions controls and the
 settlement token.
 
-### Current documentation
+### Starting documentation condition
 
 The current pages fall into four groups:
 
@@ -258,7 +262,7 @@ questions.
 - Example primary feed: Ethereum mainnet BTC/USD proxy
   `0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c`
 
-### This run will do
+### Work delivered by this run
 
 - Reconcile every existing Markdown page with implemented behaviour.
 - Preserve the eleven task pages as an intelligible implementation record while changing stale
@@ -270,7 +274,7 @@ questions.
 - Refresh validation evidence after the final tree is frozen.
 - Run the Fiat audit and prose phases for every stacked step.
 
-### This run will not do
+### Work deliberately left out
 
 - Change payoff, oracle, vault, Wildcat or deployment code merely to make a broader sales story
   true.
@@ -327,13 +331,14 @@ This would reduce mechanical drift but cannot explain instrument history, buyer 
 rights or meeting questions. Generated reference can be added later; it is not a substitute for the
 requested package.
 
-## Proposed information architecture
+## Delivered information architecture
 
 ```text
 README.md                              status, warning, map and fastest routes
 docs/primer.md                         mechanics, worked examples and terminology
 docs/research/instrument-history.md    sourced BRC and comparable-instrument history
-docs/research/oracle-landscape.md      onchain sources and reference-asset catalogue
+docs/research/reference-assets-and-oracles.md
+                                       onchain sources and reference-asset catalogue
 docs/bd/lender-brief.md                lender proposition, risks and qualification questions
 docs/bd/borrower-brief.md              borrower use cases, costs, risks and qualification questions
 docs/bd/discovery-guide.md             first-call script, question bank and follow-up evidence
@@ -460,6 +465,10 @@ review packet while research is underway.
 - S&P Global terms governing index use in financial products:
   <https://www.spglobal.com/en/terms-of-use>
 
-All market coverage and repository-state claims in the shipped research report need an “as of
+All market coverage and repository-state claims in the shipped research report carry an “as of
 16 August 2026” label. An operator must recheck addresses, source terms and product licences for
 each series rather than relying on this study.
+
+The [delivery record](delivery-plan.md) shows how the study was split into reviewable steps. The
+[README](../../README.md) owns current navigation; this page remains the design and provenance
+record.

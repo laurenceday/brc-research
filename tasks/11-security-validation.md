@@ -47,3 +47,6 @@ The following items were specified for release but were not completed by task 11
 - funded keeper, monitoring and incident-response assignments.
 
 Until those items are closed, the repository is a tested research target and audit package. It is not release approval, an offer document or evidence that the contracts are safe for production capital.
+
+Continue with the current [external review packet](../docs/review-packet.md) and [validation
+record](../docs/validation-evidence.md); this page remains a build-history record.

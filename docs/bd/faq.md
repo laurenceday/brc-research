@@ -198,3 +198,5 @@ holder, cash flow, jurisdiction and date.
 Complete the [discovery guide](discovery-guide.md), price plain credit and the option separately,
 score the exact oracle route, assign data-rights and legal owners, then decide whether the proposed
 series is close enough to the implementation to justify engineering.
+
+Record that decision and every unresolved question in the [discovery guide](discovery-guide.md).

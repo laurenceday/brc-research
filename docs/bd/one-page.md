@@ -84,3 +84,6 @@ sign-off, approved manifest, index licence, live deployment or secondary market.
 [primer](../primer.md), [lender brief](lender-brief.md), [borrower brief](borrower-brief.md) and
 [reference-asset survey](../research/reference-assets-and-oracles.md) before turning a discussion
 into proposed terms.
+
+Choose the lender or borrower route from those links; do not use this page by itself for diligence
+or approval.

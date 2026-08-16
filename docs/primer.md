@@ -187,3 +187,5 @@ For the sourced market history, read [Reverse convertibles: history, relatives a
 Wildcat](research/instrument-history.md). For the exact contractual research terms, read [Example
 BTC BRC terms](product-terms.md).
 
+For a counterparty conversation, continue with the [lender brief](bd/lender-brief.md) or [borrower
+brief](bd/borrower-brief.md). Neither brief replaces the technical terms above.

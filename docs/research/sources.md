@@ -74,3 +74,6 @@ change; every proposed series needs a new address, status, interface and rights 
 - Label inference and missing evidence. Do not turn absence of a contradictory source into proof.
 - Preserve access restrictions in the evidence record. SEC pages may return `403` to automated
   checks while remaining readable through a browser.
+
+These sources support the [instrument history](instrument-history.md) and [reference-asset and oracle
+survey](reference-assets-and-oracles.md). Recheck time-sensitive entries for each proposed series.

@@ -35,9 +35,14 @@ pinned SphereX source but exited successfully; this run does not establish that 
 harmless. No final manifest, deployment record, RPC-backed verifier run or strict release gate was
 present. This is development evidence, not release approval.
 
-The authored-Markdown check also passed on 16 August 2026. It checks non-vendored Markdown files for
-an H1 heading, nonempty content and resolvable local Markdown links. It does not check factual
-accuracy, external links, rendered diagrams or prose quality.
+The final documentation run on 16 August 2026 checked 33 authored Markdown files, excluding the
+vendored `lib/` tree and ignored Fiat controller records. Each file had an H1 heading, nonempty
+content and resolvable local Markdown links. Ten Mermaid blocks rendered with the repository's
+pinned Mermaid CLI, and all six published payoff examples matched the checked calculation. The
+Markdown script does not establish factual accuracy or validate external links; the source and
+reader-path cold reads are separate evidence. Proscribed and Imprimatur both scored every authored
+file at 100/100 with no listed hits. The final manual voice pass used the serious Laurence
+register: direct British English, no sales flourish, and no change to facts or caveats.
 
 The explicit development-only form is:
 
@@ -81,3 +86,33 @@ The following remain release blockers until evidence is attached:
 - a mainnet-fork deployment and verifier run at the release commit;
 - maturity, partial-recovery and fallback rehearsals led by somebody who did not write the contracts; and
 - funded monitoring and keeper accounts with no settlement-asset custody authority.
+
+## Final cold-read record
+
+The technical route was rehearsed from the README through `docs/architecture.md`,
+`docs/threat-model.md`, the review packet, validation evidence, deployment tooling, runbook and
+operator checklists. The lender route was
+rehearsed from the one-page through the lender brief, primer, oracle survey and review packet. The
+borrower route was rehearsed from the one-page through the borrower brief, product terms, oracle
+survey and runbook.
+
+Across those routes, “full payment” means zero remaining Wildcat lender supply plus complete
+collection of the authenticated batches; it does not require formal market closure.
+`recoveryDelay` is the BRC recovery clock, while `delinquencyGracePeriod` is a separate Wildcat
+market term. The only implemented primary source is the pinned Ethereum Chainlink BTC/USD
+AggregatorV3 proxy.
+
+The final run used:
+
+```bash
+./script/check-dependencies.sh
+./script/check-primer-examples.sh
+FOUNDRY_PROFILE=ci forge test --summary
+./script/check-markdown.sh
+./script/check-mermaid.sh
+git diff --check
+```
+
+The strict release gate was not run because there is no final manifest, deployment record or RPC
+evidence set. The skipped mainnet-fork test remains skipped in the current 229-pass result; the
+separate 15 August fork exercise above is not promoted into the final-tree result.

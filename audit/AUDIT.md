@@ -119,3 +119,36 @@ across all six pages and diagrams.
 Leads not pursued: Mermaid rendering proves syntax, not visual quality in every downstream deck or
 client. Extracted diagrams must retain their captions and prototype boundary. No Solidity changed,
 so a new Solidity audit or fuzz harness was not applicable to this step.
+
+## Step 5, round 1 -- 16 August 2026
+
+This round reviewed implementation commit `3cc44c931d49f923eff174716ba8adcd716c30f0` as three readers:
+an external contract reviewer, a prospective lender and a prospective borrower. It checked the 33-file
+inventory, every local link, the implementation-history boundary, the normal and recovery conditions,
+the oracle compatibility labels, and every new route between documents. It also rechecked upstream
+PR 124: it remained open and clean at pinned head
+`99bb85840a77a56fa5f64504a60ec126b6047cf5` on 16 August 2026.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| -- | -- | -- | No finding. | clean |
+
+Leads not pursued: the final documentation run does not claim an RPC-backed release gate, an external
+audit, legal approval or current rights to a new reference asset. The visual source contains no image
+assets or character art; its ten Mermaid diagrams remain plain technical figures. No Solidity changed,
+so a new Solidity audit or fuzz harness was not applicable to this diff.
+
+## Step 5, round 2 -- 16 August 2026
+
+This round reviewed the complete audit tree after the round-1 record was added. It reran the dependency,
+six-vector payoff, 33-file Markdown and ten-diagram checks, then ran Proscribed and Imprimatur across
+all 33 authored files. Every file scored 100/100 with no listed hits. The reader routes still ended at
+the same code-backed terms and release blockers.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| -- | -- | -- | No finding. | clean |
+
+Leads not pursued: the current 229-pass Foundry result was already rerun on the implementation commit;
+the audit branch changed only this log. The opt-in mainnet-fork test remains skipped in that result, and
+the separate 15 August fork exercise remains qualified in `docs/validation-evidence.md`.

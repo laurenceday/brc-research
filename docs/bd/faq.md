@@ -90,6 +90,13 @@ collected for notes. There is no borrower rebate. Later payments are outside the
 There is no vault redemption before settlement and no promised secondary market. Transfers may
 also be restricted by eligibility policy.
 
+### Is the note a standards-complete ERC-20?
+
+No. It exposes balances, allowances and ordinary transfer functions, but the prototype does not
+implement permit or delegated redemption. A holder must redeem its own notes, although it may send
+the resulting settlement asset to another recipient. Custody and integration support need an exact
+interface check.
+
 ## Oracle
 
 ### Can we choose any Chainlink feed in the manifest?
@@ -111,8 +118,8 @@ delay must pass. A valid primary proof cancels a pending fallback.
 
 ### Why not use a Safe for fallback?
 
-The current verifier uses ECDSA recovery and rejects addresses with deployed code at construction.
-Ratifiers must be rehearsed ECDSA EOAs.
+The fixing oracle recovers ECDSA signers, and its constructor rejects ratifier addresses with
+deployed code. Ratifiers must be rehearsed ECDSA EOAs.
 
 ### Can this reference the S&P 500?
 

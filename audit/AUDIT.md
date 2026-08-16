@@ -88,3 +88,34 @@ Leads not pursued: address-level inspection was limited to the three named Ether
 Feeds. Every other provider or asset remains a catalogue candidate or inquiry, and the report says
 so at each decision point. A real series still needs source-specific technical, commercial and
 legal review.
+
+## Step 4, round 1 -- 16 August 2026
+
+This round reviewed commit `4850f35a9fa80ab82d10977bde8adddbada064f0`. It cold-read the pack
+once as a lender, once as a borrower and once against the contracts. It also rendered every Mermaid
+block and checked each normal/recovery arrow against the vault state machine.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| S4-R1-01 | low | `docs/bd/faq.md` | The fallback answer attributed ratifier construction checks to “the verifier” rather than the fixing oracle, which could send a reviewer to the wrong contract. | fixed on the step audit branch |
+| S4-R1-02 | low | `docs/bd/faq.md`, `docs/bd/lender-brief.md` | The pack called the notes ERC-20-like but did not state the integration boundary: there is no permit or delegated redemption. A custody reader could infer broader token support. | fixed on the step audit branch |
+
+Leads not pursued: the material does not price a series, select a counterparty or claim legal,
+accounting, tax, data-rights or suitability conclusions. Those depend on facts absent from the
+research repository and remain explicit discovery questions.
+
+## Step 4, round 2 -- 16 August 2026
+
+This round reviewed the fixed tree at
+`f0336eb0035222a43f5efde071e821591362981d`. The lender read ended with full face at risk, no BTC
+upside and a rebate only after full performance. The borrower read ended with gross Wildcat payment
+before any rebate and zero rebate in recovery. The technical read found those statements consistent
+across all six pages and diagrams.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+| -- | -- | -- | No finding. | clean |
+
+Leads not pursued: Mermaid rendering proves syntax, not visual quality in every downstream deck or
+client. Extracted diagrams must retain their captions and prototype boundary. No Solidity changed,
+so a new Solidity audit or fuzz harness was not applicable to this step.

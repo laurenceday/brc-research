@@ -60,7 +60,9 @@ rebate, but it does not remove correlated credit loss.
 
 The prototype supplies no secondary market, early redemption or assured buyer. Transfer eligibility
 may restrict who can receive or operate the notes. The borrower cannot shorten the Wildcat term,
-but the lender still needs funding it can leave outstanding.
+but the lender still needs funding it can leave outstanding. The note exposes ordinary transfer
+and allowance functions, but has no permit or delegated redemption; custody integrations need to
+check the exact interface.
 
 ### Oracle and calendar
 

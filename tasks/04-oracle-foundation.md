@@ -27,3 +27,5 @@ The vault creates the oracle and records `S0` in its constructor. If vault deplo
 ## Boundary of this step
 
 Task 04 did not choose `ST` or add fallback governance. Task 05 added deterministic maturity selection, and task 09 added the delayed ratifier route.
+
+Next implementation record: [Task 05, maturity fixing](05-maturity-fixing.md).

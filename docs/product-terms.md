@@ -77,3 +77,6 @@ snapshots the pool. Payments arriving later are outside noteholder claims.
 The write-off time, oracle fallback source, delays, ratifier set, signature threshold and single-ratifier veto all have to be fixed before subscriptions open. Ratifiers in this prototype must be ECDSA EOAs, not Safe or other contract wallets. The contract does not establish that a valid Chainlink round is absent; that remains part of the ratifiers' evidence check.
 
 The Wildcat ArchController can replace the market's SphereX engine. A replacement can block withdrawal queueing or execution, and the BRC vault has no second route out after activation. The ArchController owner can change and push the protocol fee too. The manifest records the owner, SphereX roles, engine, fee recipient and fee seen before funding; the bits Wildcat can change remain live governance assumptions for the whole term.
+
+Read the [architecture](architecture.md) for the contract split and the [runbook](runbook.md) for the
+actions that apply these terms. A real series still needs its own signed manifest and legal documents.

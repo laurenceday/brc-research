@@ -107,3 +107,6 @@ fallback plan rather than pretending the onchain recovery path remains available
 3. As Wildcat pays a batch, execute the available withdrawal into the vault. Redemptions stay closed while recoveries are still coming in.
 4. At or after the fixed write-off eligibility time, check that every recorded batch has expired, then call `finalizeRecovery()`. It executes any amount Wildcat has made withdrawable before taking the snapshot.
 5. Open note redemption against the recovered pool. The call is permissionless; later Wildcat payments and unsolicited transfers do not enlarge the pool.
+
+Use the [operator checklists](operations-checklists.md) to assign each action and preserve its evidence.
+Use the [review packet](review-packet.md) to decide whether the repository is ready to leave research.

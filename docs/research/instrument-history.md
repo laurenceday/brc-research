@@ -167,3 +167,6 @@ labels should be added only with the original prospectus or a reliable contempor
 
 The checked bibliography and source-selection rules are in the [research source
 index](sources.md).
+
+For the prototype's mechanics rather than its ancestry, continue with the [primer](../primer.md).
+Historical labels and tax outcomes do not determine the treatment of a proposed series.

@@ -34,7 +34,9 @@ observation rule are implemented and reviewed.
 
 ## Read this first
 
-Choose the route that matches the job:
+The final cold read rehearsed three primary routes from this page: technical review, lender
+discussion and borrower discussion. The remaining rows are shorter routes for operators and
+contributors.
 
 | Reader | Start here | Then read |
 | --- | --- | --- |
@@ -71,13 +73,15 @@ git submodule update --init --recursive
 ./script/check-dependencies.sh
 FOUNDRY_PROFILE=ci forge test --summary
 ./script/check-markdown.sh
+./script/check-primer-examples.sh
+./script/check-mermaid.sh
 ```
 
 The Foundry configuration uses Solidity 0.8.28, the Cancun EVM, optimizer runs of 200 and via IR.
-The current integrated documentation and test baseline is
-`9b97787927ee2f9fab2907a9d3762862133fd5cd`. The production-contract baseline in the review packet
-is recorded separately because the final merged step added tests and operating material without
-changing `src/`.
+The production contracts were last changed in
+`efb880e3d79ba12709d68c850b9321eeb19d7cfb`. The present documentation stack builds on the merged
+repository baseline `9b97787927ee2f9fab2907a9d3762862133fd5cd`; neither hash is a release
+approval. A real series must name one frozen, externally reviewed release commit in its manifest.
 
 ## Dependency state
 
@@ -108,3 +112,7 @@ the supplied values; the example file is deliberately incomplete.
 
 The original eleven-PR stack is merged. The task pages remain as the build record; they are no
 longer an instruction to review or merge branches from the bottom.
+
+For the evidence behind the current repository claims, finish at the [validation
+record](docs/validation-evidence.md). For the work that still blocks a real series, use the
+[external review packet](docs/review-packet.md).

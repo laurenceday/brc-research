@@ -35,3 +35,5 @@ The whole activation is one transaction. A failed check or deposit rolls back th
 ## Boundary of this step
 
 Task 07 deposited the note proceeds but did not add maturity withdrawals, redemptions or default recovery. Wildcat governance, SphereX, sanctions and borrower-identity administration remain external trust assumptions recorded by the manifest; activation does not freeze them.
+
+Next implementation record: [Task 08, normal settlement](08-normal-settlement.md).

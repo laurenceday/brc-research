@@ -36,3 +36,5 @@ The contract enforces time, quorum, replay and source rules. Ratifiers remain re
 ## Boundary of this step
 
 Task 09 did not decide ratifier membership, legal authority, fallback-source licensing or the commercial write-off policy. Those remain deployment and legal decisions. It also did not add reproducible deployment tooling or the final review package; tasks 10 and 11 did that work.
+
+Next implementation record: [Task 10, deployment tooling](10-deployment-tooling.md).

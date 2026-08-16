@@ -130,3 +130,6 @@ lists the full release blockers.
 principal depend on credit, BTC, the oracle, Wildcat, the settlement asset and operations.”
 
 If that sentence is not acceptable, the discussion should stop before APR.
+
+Continue with the [discovery guide](discovery-guide.md) only after the lender can state the barrier
+cliff, full-face principal exposure and borrower-credit risk without prompting.

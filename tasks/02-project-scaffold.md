@@ -30,3 +30,5 @@ A fresh checkout must initialise submodules recursively before running Foundry. 
 ## Boundary of this step
 
 Task 02 established the workshop. It did not add payoff logic, note issuance, oracle selection or Wildcat activation. Those arrived in tasks 03 through 07.
+
+Next implementation record: [Task 03, payoff math](03-payoff-math.md).

@@ -25,3 +25,5 @@ After an unsuccessful raise, holders burn their current notes and pull refunds t
 ## Boundary of this step
 
 Task 06 did not verify or fund a Wildcat market, record an oracle fixing or settle the note. Task 07 added activation; tasks 08 and 09 added maturity and recovery.
+
+Next implementation record: [Task 07, Wildcat activation](07-wildcat-activation.md).

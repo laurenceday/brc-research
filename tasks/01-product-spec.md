@@ -28,3 +28,5 @@ Later contract tests fix the boundary cases first stated here: barrier equality,
 ## Boundary of this step
 
 Task 01 shipped documents only. It did not add Solidity or deployment tooling, and it made no production-readiness claim. The singleton fixed-term market design remained dependent on `wildcat-finance/v2-protocol#124`; the repository now pins the exact reviewed commit used by the prototype.
+
+Next implementation record: [Task 02, project scaffold](02-project-scaffold.md).

@@ -345,3 +345,7 @@ source, observation rule, fallback and rights all line up.
 - The repository has no external audit, legal sign-off, approved deployment or live BRC series.
 
 The [source index](sources.md) records the first-party material used for this report.
+
+Take a proposed reference asset into the [BD discovery guide](../bd/discovery-guide.md), then return
+to this report for the technical, calendar, licensing and fallback gaps. A catalogue entry alone is
+not approval to build or distribute a linked note.

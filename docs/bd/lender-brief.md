@@ -25,7 +25,8 @@ The 60% barrier does not mean loss is capped at 40%. If the maturity fixing is o
 the barrier, there is no slash. At the barrier, the slash is the whole decline from strike to
 barrier: 40% of face in the example. Below the barrier, it grows with the decline from strike.
 
-The worked numbers and integer-rounding rules are in the [primer](../primer.md).
+The worked numbers for a live BD walkthrough are in the [worked example](worked-example.md). The
+integer-rounding rules are in the [primer](../primer.md).
 
 ## What can improve the lender outcome
 

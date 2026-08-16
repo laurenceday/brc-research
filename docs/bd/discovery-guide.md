@@ -23,6 +23,10 @@ shows the choices hidden inside each label.
 If the conversation reaches APR before maximum principal loss and the barrier cliff are understood,
 move back to the payoff.
 
+For the first whiteboard pass, use the [worked example](worked-example.md): happy, neutral,
+catastrophic full performance, and catastrophic default. It keeps the room in cash-credit language
+before anyone asks about implementation.
+
 ## Design brief
 
 ### 1. Purpose and parties

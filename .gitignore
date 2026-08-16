@@ -4,3 +4,5 @@ broadcast/
 deployments/*.json
 lcov.info
 .audit-*/
+.hexaemeron/
+tmp/

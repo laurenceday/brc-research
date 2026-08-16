@@ -35,14 +35,13 @@ pinned SphereX source but exited successfully; this run does not establish that 
 harmless. No final manifest, deployment record, RPC-backed verifier run or strict release gate was
 present. This is development evidence, not release approval.
 
-The final documentation run on 16 August 2026 checked 33 authored Markdown files, excluding the
-vendored `lib/` tree and ignored Fiat controller records. Each file had an H1 heading, nonempty
-content and resolvable local Markdown links. Ten Mermaid blocks rendered with the repository's
-pinned Mermaid CLI, and all six published payoff examples matched the checked calculation. The
-Markdown script does not establish factual accuracy or validate external links; the source and
-reader-path cold reads are separate evidence. Proscribed and Imprimatur both scored every authored
-file at 100/100 with no listed hits. The final manual voice pass used the serious Laurence
-register: direct British English, no sales flourish, and no change to facts or caveats.
+The final documentation run on 16 August 2026 checked 20 authored Markdown files, excluding the
+vendored `lib/` tree. Each file had an H1 heading, nonempty content and resolvable local Markdown
+links. Eleven Mermaid blocks rendered with the repository's pinned Mermaid CLI, and all six
+published payoff examples matched the checked calculation. The Markdown script does not establish
+factual accuracy or validate external links; the source and reader-path cold reads are separate
+evidence. Imprimatur scored every authored file at 100/100 with no listed defects. A manual Vulgate
+pass kept the prose direct, used British English and preserved the technical caveats.
 
 The explicit development-only form is:
 

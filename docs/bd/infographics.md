@@ -9,6 +9,11 @@ margins and one idea per frame. The palette is Bunker `#141414`, Black Rock `#30
 `#8A8C9F`, Athens Grey `#EFF0F4`, white, Ultramarine Blue `#3E68FF`, Purple Heart `#4D26BC`, Dull
 Red `#C24647` and Galliano `#D7A820`. Use red only for loss or recovery stress.
 
+Use generated bitmap assets for mood panels and story beats, not for exact maths. Generated images
+must not contain words, numerals, tickers, addresses, logos or watermarks. Add every label and
+number in the deck layer. A sample three-path panel is checked in at
+[worked-example-paths.png](assets/worked-example-paths.png).
+
 ## 1. The cash-credit trade
 
 Open with the commercial structure. Wildcat is the accounting route inside the prototype, not the
@@ -70,6 +75,22 @@ flowchart TB
 
 Keep the crash and default branches separate. Full borrower performance enables the reference-
 linked rebate. Default disables it.
+
+Suggested image prompt:
+
+```text
+Use case: productivity-visual
+Asset type: 16:9 three-panel scenario illustration, no embedded text
+Primary request: Three adjacent institutional finance panels showing the same credit note through
+happy, neutral and catastrophic market paths. Panel one is calm and fully paid, panel two is tight
+but still performing, panel three is stressed with a broken price line and reduced cash pool.
+Style: Wildcat brand, editorial line art, light background, Ultramarine Blue for happy, Galliano
+for neutral, Dull Red for catastrophic, thin Bunker strokes and pale Black Haze cards.
+Composition: Three equal vertical panels with empty label space above each; abstract ledgers, cash
+pools and reference-price lines; sparse and professional.
+Avoid: embedded text, letters, words, numerals, logos, watermarks, coins, cats, exchange screens,
+blockchain nodes, glowing networks and photoreal bankers.
+```
 
 ## 4. Normal settlement and recovery
 
@@ -137,6 +158,20 @@ flowchart LR
 
 The shorthand is unsecured borrower credit plus a put sold by investors. A return discussion that
 omits either exposure is incomplete.
+
+Suggested image prompt:
+
+```text
+Use case: productivity-visual
+Asset type: 16:9 institutional risk-exchange illustration, no embedded text
+Primary request: An abstract bilateral finance visual showing investors on one side, a borrower on
+the other, and two exchanged legs: credit funding and reference-asset downside. Use ledger cards,
+arrows and a small reference-price panel.
+Style: Wildcat brand, Black Haze background, Bunker linework, Blue Ribbon for funding, Dull Red for
+downside, restrained finance editorial style.
+Composition: Two large zones with clean space for overlaid bullet labels.
+Avoid: DeFi protocol diagrams, token icons, words, numerals, people shaking hands, logos and neon.
+```
 
 ## Use in a meeting
 

@@ -12,6 +12,9 @@ The borrower wants fixed-term funding and also wants protection if BTC falls har
 investors are willing to fund the borrower and sell that downside protection, but only for a return
 that pays for both ordinary credit and the option-like risk.
 
+A sample three-path visual is available at [worked-example-paths.png](assets/worked-example-paths.png).
+Use it as a slide panel only; keep the exact labels and numbers editable in the deck or handout.
+
 Use these example numbers:
 
 | Term | Example |
